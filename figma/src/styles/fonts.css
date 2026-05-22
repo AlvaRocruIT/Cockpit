@@ -1,0 +1,30 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+@media print {
+  @page {
+    margin: 0.6in 0.7in;
+    size: A4;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .email-print-target,
+  .email-print-target * {
+    visibility: visible;
+  }
+
+  .email-print-target {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    background: white !important;
+    overflow: visible;
+  }
+
+  /* Strip chrome decorations for clean output */
+  .email-print-target .email-meta-bar {
+    display: none !important;
+  }
+}
