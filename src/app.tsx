@@ -660,34 +660,42 @@ function EmailTemplateView({ sprints, chartData, overallPct }: { sprints: Sprint
             </div>
           </div>
 
-          {/* Generate button */}
-          <button
-             onClick={() => {
-            const link = document.createElement("a");
-            link.href = `${import.meta.env.BASE_URL}templates/cockpit_template.xlsx`;
-            link.download = "cockpit_template.xlsx";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-          }}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground bg-white hover:border-foreground/25 hover:text-foreground transition-all"
-        >
-          <Download size={12} />
-          Download Template
-        </button>
-          
-            {generating ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Sparkles size={15} />
-                Generate Email Update
-              </>
-            )}
-          </button>
+                    {/* Action buttons */}
+          <div className="space-y-2">
+            <button
+              onClick={() => {
+                const link = document.createElement("a");
+                link.href = `${import.meta.env.BASE_URL}templates/cockpit_template.xlsx`;
+                link.download = "cockpit_template.xlsx";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }}
+              className="w-full flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl text-sm font-semibold border border-border text-muted-foreground bg-white hover:border-foreground/25 hover:text-foreground transition-all"
+            >
+              <Download size={15} />
+              Download Template
+            </button>
+
+            <button
+              onClick={handleGenerate}
+              disabled={generating}
+              className="w-full flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl text-sm font-semibold text-white transition-all"
+              style={{ backgroundColor: generating ? "#555" : "#111111" }}
+            >
+              {generating ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles size={15} />
+                  Generate Email Update
+                </>
+              )}
+            </button>
+          </div>
 
           {generated && (
             <p className="text-xs font-mono text-center" style={{ color: "#16a34a" }}>
