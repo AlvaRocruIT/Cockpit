@@ -828,7 +828,6 @@ export default function App() {
               Import Project Data
             </button>
           </div>
-        </div>
       </header>
     
       {/* ── Dashboard view ── */}
