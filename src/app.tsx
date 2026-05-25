@@ -42,7 +42,6 @@ interface Task {
   description: string;
   status: TaskStatus;
   feedback?: string;
-  retryRequired?: boolean;
   weeklyProgress: number;
   overallProgress: number;
 }
