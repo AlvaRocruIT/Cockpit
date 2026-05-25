@@ -893,7 +893,6 @@ export default function App() {
             {sprints.map((sprint) => (
               <SprintCard key={sprint.id} sprint={sprint} onFeedback={(taskId, taskName, existing) => setFeedbackModal({ taskId, taskName, existing })} />
             ))}
-          </div>
 
           {/* Legend */}
           <div className="mt-8 flex items-center justify-center gap-6 pb-8">
