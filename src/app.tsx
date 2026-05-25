@@ -683,18 +683,6 @@ function EmailTemplateView({ sprints, chartData, overallPct }: { sprints: Sprint
               className="w-full flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl text-sm font-semibold text-white transition-all"
               style={{ backgroundColor: generating ? "#555" : "#111111" }}
             >
-              {generating ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Sparkles size={15} />
-                  Generate Email Update
-                </>
-              )}
-            </button>
           </div>
 
           {generated && (
