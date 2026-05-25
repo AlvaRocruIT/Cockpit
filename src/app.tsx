@@ -663,10 +663,7 @@ function EmailTemplateView({ sprints, chartData, overallPct }: { sprints: Sprint
           {/* Generate button */}
           <button
             onClick={() => {
-              window.open(
-                "https://alvarocruit.github.io/Cockpit/templates/cockpit_template.xlsx",
-                "_blank"
-              );
+              alert("CLICK DETECTED");
             }}
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground bg-white hover:border-foreground/25 hover:text-foreground transition-all"
           >
