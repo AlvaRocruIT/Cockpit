@@ -808,10 +808,8 @@ export default function App() {
               </div>
             </div>
           </div>
-        </div>
-      </header>
 
-      {/* ── Action bar ── */}
+          {/* ── Action bar ── */}
           <div className="border-t border-border py-2.5 flex items-center gap-2 flex-wrap">
             <button
               onClick={() => {}}
@@ -828,6 +826,7 @@ export default function App() {
               Import Project Data
             </button>
           </div>
+        </div>
       </header>
     
       {/* ── Dashboard view ── */}
