@@ -695,7 +695,6 @@ function EmailTemplateView({ sprints, chartData, overallPct }: { sprints: Sprint
               Email preview ready
             </p>
           )}
-        </div>
 
         {/* ── Preview panel ── */}
         <div className="space-y-3">
