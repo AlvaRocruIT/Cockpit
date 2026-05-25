@@ -187,12 +187,16 @@ function StatusBadge({ status }: { status: TaskStatus }) {
   );
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white border border-border rounded-xl px-4 py-3 shadow-lg text-xs font-mono">
-        <p className="font-semibold text-foreground mb-1">{label}</p>
-        {payload.map((p: any) => <p key={p.name} style={{ color: p.fill }}>{p.name}: {p.value}</p>)}
+        <p className="font-semibold text-foreground mb-1">{String(label ?? "")}</p>
+        {payload.map((p, idx) => (
+          <p key={`${p.name ?? "item"}-${idx}`} style={{ color: p.color ?? "#111" }}>
+            {p.name}: {p.value}
+          </p>
+        ))}
       </div>
     );
   }
