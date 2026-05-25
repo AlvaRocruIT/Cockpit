@@ -663,12 +663,10 @@ function EmailTemplateView({ sprints, chartData, overallPct }: { sprints: Sprint
           {/* Generate button */}
           <button
             onClick={() => {
-              const link = document.createElement("a");
-              link.href = `${import.meta.env.BASE_URL}templates/cockpit_template.xlsx`;
-              link.download = "cockpit_template.xlsx";
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
+              window.open(
+                "https://alvarocruit.github.io/Cockpit/templates/cockpit_template.xlsx",
+                "_blank"
+              );
             }}
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground bg-white hover:border-foreground/25 hover:text-foreground transition-all"
           >
