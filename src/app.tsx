@@ -683,7 +683,7 @@ function EmailTemplateView({ sprints, chartData, overallPct }: { sprints: Sprint
               className="w-full flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl text-sm font-semibold text-white transition-all"
               style={{ backgroundColor: generating ? "#555" : "#111111" }}
             >
-          </div>
+          </button>
 
           {generated && (
             <p className="text-xs font-mono text-center" style={{ color: "#16a34a" }}>
@@ -736,7 +736,6 @@ function EmailTemplateView({ sprints, chartData, overallPct }: { sprints: Sprint
       </div>
     </div>
   );
-}
 
 // ─── Root App ─────────────────────────────────────────────────────────────────
 
