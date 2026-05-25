@@ -752,7 +752,6 @@ export default function App() {
         tasks: sprint.tasks.map((task) => task.id === taskId ? { ...task, feedback: feedback || undefined } : task),
       }))
     );
-  };
 
   const allTasks = sprints.flatMap((s) => s.tasks);
   const totalTasks = allTasks.length;
