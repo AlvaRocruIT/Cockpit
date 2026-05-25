@@ -162,15 +162,26 @@ function ProgressRing({ pct, size = 56, stroke = 5, color }: { pct: number; size
   );
 }
 
+const TRAFFIC_STATUSES: TaskStatus[] = ["Achieved", "Working on", "Not yet", "Pending"];
+const TRAFFIC_COLORS: Record<TaskStatus, string> = {
+  Achieved: "#16a34a",
+  "Working on": "#d97706",
+  "Not yet": "#dc2626",
+  Pending: "#9ca3af",
+};
+
 function TrafficLight({ status }: { status: TaskStatus }) {
-  const colors: Record<string, string> = { Achieved: "#16a34a", "Working on": "#d97706", "Not yet": "#dc2626" };
   return (
     <div className="flex gap-[5px] items-center">
       {(["Achieved", "Working on", "Not yet"] as const).map((s) => (
-        <div key={s} className="w-3 h-3 rounded-full transition-all" style={{
-          backgroundColor: status === "Pending" ? "#e5e7eb" : status === s ? colors[s] : "#e5e7eb",
-          boxShadow: status === s ? `0 0 0 2px white, 0 0 0 3px ${STATUS_CONFIG[status].color}` : "none",
-        }} />
+        <div
+          key={s}
+          className="w-3 h-3 rounded-full transition-all"
+          style={{
+            backgroundColor: status === "Pending" ? "#e5e7eb" : status === s ? TRAFFIC_COLORS[s] : "#e5e7eb",
+            boxShadow: status === s ? `0 0 0 2px white, 0 0 0 3px ${STATUS_CONFIG[status].color}` : "none",
+          }}
+        />
       ))}
     </div>
   );
