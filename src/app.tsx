@@ -660,29 +660,24 @@ function EmailTemplateView({ sprints, chartData, overallPct }: { sprints: Sprint
             </div>
           </div>
 
-                    {/* Action buttons */}
-          <div className="space-y-2">
-            <button
-              onClick={() => {
-                const link = document.createElement("a");
-                link.href = `${import.meta.env.BASE_URL}templates/cockpit_template.xlsx`;
-                link.download = "cockpit_template.xlsx";
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-              }}
-              className="w-full flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl text-sm font-semibold border border-border text-muted-foreground bg-white hover:border-foreground/25 hover:text-foreground transition-all"
-            >
-              <Download size={15} />
-              Download Template
-            </button>
-
-            <button
-              onClick={handleGenerate}
-              disabled={generating}
-              className="w-full flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl text-sm font-semibold text-white transition-all"
-              style={{ backgroundColor: generating ? "#555" : "#111111" }}
-            >
+          {/* Generate button */}
+          <button
+            onClick={handleGenerate}
+            disabled={generating}
+            className="w-full flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl text-sm font-semibold text-white transition-all"
+            style={{ backgroundColor: generating ? "#555" : "#111111" }}
+          >
+            {generating ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Sparkles size={15} />
+                Generate Email Update
+              </>
+            )}
           </button>
 
           {generated && (
@@ -691,6 +686,7 @@ function EmailTemplateView({ sprints, chartData, overallPct }: { sprints: Sprint
               Email preview ready
             </p>
           )}
+        </div>
 
         {/* ── Preview panel ── */}
         <div className="space-y-3">
@@ -736,6 +732,7 @@ function EmailTemplateView({ sprints, chartData, overallPct }: { sprints: Sprint
       </div>
     </div>
   );
+}
 
 // ─── Root App ─────────────────────────────────────────────────────────────────
 
@@ -751,6 +748,7 @@ export default function App() {
         tasks: sprint.tasks.map((task) => task.id === taskId ? { ...task, feedback: feedback || undefined } : task),
       }))
     );
+  };
 
   const allTasks = sprints.flatMap((s) => s.tasks);
   const totalTasks = allTasks.length;
@@ -892,6 +890,7 @@ export default function App() {
             {sprints.map((sprint) => (
               <SprintCard key={sprint.id} sprint={sprint} onFeedback={(taskId, taskName, existing) => setFeedbackModal({ taskId, taskName, existing })} />
             ))}
+          </div>
 
           {/* Legend */}
           <div className="mt-8 flex items-center justify-center gap-6 pb-8">
