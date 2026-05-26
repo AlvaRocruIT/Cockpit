@@ -137,6 +137,45 @@ function rowsToSprintsFromSheet(json: Record<string, unknown>[]): Sprint[] {
   return [...sprintMap.values()].sort((a, b) => a.week - b.week);
 }
 
+function rowsToSprintsFromSheetRows(rows: (string | number)[][]): Sprint[] {
+  const sprintMap = new Map<string, Sprint>();
+
+  // Header is expected at Excel row 6 => index 5
+  for (let i = 6; i < rows.length; i++) {
+    const r = rows[i] ?? [];
+    const week = Number(String(r[0] ?? "").trim());
+    const milestone = String(r[1] ?? "").trim();
+    const task = String(r[2] ?? "").trim();
+    const description = String(r[3] ?? "").trim();
+    const status = normalizeStatus(r[4]);
+    const feedback = String(r[5] ?? "").trim();
+    const retry = ["true", "yes", "1"].includes(String(r[6] ?? "").trim().toLowerCase());
+    const weeklyProgress = toDisplayPercent(r[7]);
+    const overallProgress = toDisplayPercent(r[8]);
+
+    if (!Number.isFinite(week) || week <= 0 || !milestone || !task) continue;
+
+    const key = `${week}__${milestone}`;
+    if (!sprintMap.has(key)) {
+      sprintMap.set(key, { id: sprintMap.size + 1, week, title: milestone, tasks: [] });
+    }
+
+    const sprint = sprintMap.get(key)!;
+    sprint.tasks.push({
+      id: `${sprint.id}-${sprint.tasks.length + 1}`,
+      name: task,
+      description,
+      status,
+      feedback: feedback || undefined,
+      retryRequired: retry,
+      weeklyProgress,
+      overallProgress,
+    });
+  }
+
+  return [...sprintMap.values()].sort((a, b) => a.week - b.week);
+}
+
 function toBool(value: unknown): boolean {
   const v = String(value ?? "").trim().toLowerCase();
   return v === "true" || v === "yes" || v === "1";
@@ -177,6 +216,150 @@ function rowsToSprints(rows: RawTemplateRow[]): Sprint[] {
   });
 
   return Array.from(map.values()).sort((a, b) => a.week - b.week);
+}
+
+// ─── Project mock data ────────────────────────────────────────────────────────
+
+interface Project {
+  id: string;
+  name: string;
+  client: string;
+  color: string;
+  initials: string;
+  status: "active" | "paused" | "completed";
+  week: number;
+  totalWeeks: number;
+}
+
+const MOCK_PROJECTS: Project[] = [
+  { id: "p1", name: "Conversational AI Platform", client: "Luke Hartmann", color: "#111111", initials: "LH", status: "active",    week: 2, totalWeeks: 5 },
+  { id: "p2", name: "E-Commerce Chatbot",         client: "Sofía Martínez", color: "#6366f1", initials: "SM", status: "active",    week: 4, totalWeeks: 6 },
+  { id: "p3", name: "Internal HR Assistant",      client: "Apex Corp",      color: "#0891b2", initials: "AC", status: "paused",    week: 1, totalWeeks: 4 },
+  { id: "p4", name: "Knowledge Base Agent",       client: "DataSync GmbH",  color: "#16a34a", initials: "DG", status: "active",    week: 3, totalWeeks: 5 },
+  { id: "p5", name: "Support Automation",         client: "NovaTech Inc.",   color: "#d97706", initials: "NT", status: "completed", week: 5, totalWeeks: 5 },
+];
+
+const PROJECT_STATUS_STYLES = {
+  active:    { label: "Active",    color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0" },
+  paused:    { label: "Paused",    color: "#d97706", bg: "#fffbeb", border: "#fde68a" },
+  completed: { label: "Completed", color: "#6366f1", bg: "#f5f3ff", border: "#ddd6fe" },
+};
+
+// ─── ProjectSelector ──────────────────────────────────────────────────────────
+
+function ProjectSelector({ selected, onChange }: { selected: Project; onChange: (p: Project) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const st = PROJECT_STATUS_STYLES[selected.status];
+
+  return (
+    <div ref={ref} className="relative">
+      {/* Trigger */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-border bg-white hover:border-foreground/25 transition-all group"
+        style={{ minWidth: 0 }}
+      >
+        {/* Avatar */}
+        <div
+          className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 text-white text-[10px] font-bold font-mono"
+          style={{ backgroundColor: selected.color }}
+        >
+          {selected.initials}
+        </div>
+
+        {/* Labels */}
+        <div className="text-left hidden sm:block">
+          <p className="text-xs font-semibold text-foreground leading-none truncate max-w-[140px]">{selected.name}</p>
+          <p className="text-[10px] font-mono text-muted-foreground leading-none mt-0.5 truncate max-w-[140px]">{selected.client}</p>
+        </div>
+
+        {/* Status dot */}
+        <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: st.color }} />
+
+        <ChevronDown size={12} className="text-muted-foreground flex-shrink-0 transition-transform" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
+      </button>
+
+      {/* Dropdown */}
+      {open && (
+        <div className="absolute top-full left-0 mt-2 w-72 bg-white rounded-2xl border border-border shadow-xl z-50 overflow-hidden">
+          {/* Dropdown header */}
+          <div className="px-4 py-3 border-b border-border" style={{ backgroundColor: "#fafafa" }}>
+            <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">Projects</p>
+          </div>
+
+          {/* Project list */}
+          <div className="py-1.5 max-h-72 overflow-y-auto">
+            {MOCK_PROJECTS.map((project) => {
+              const pst = PROJECT_STATUS_STYLES[project.status];
+              const isSelected = project.id === selected.id;
+              const progressPct = Math.round((project.week / project.totalWeeks) * 100);
+              return (
+                <button
+                  key={project.id}
+                  onClick={() => { onChange(project); setOpen(false); }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-secondary/60"
+                  style={{ backgroundColor: isSelected ? "#f5f5f5" : undefined }}
+                >
+                  {/* Avatar */}
+                  <div
+                    className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-white text-xs font-bold font-mono"
+                    style={{ backgroundColor: project.color }}
+                  >
+                    {project.initials}
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs font-semibold text-foreground truncate">{project.name}</p>
+                      <span
+                        className="flex-shrink-0 text-[10px] font-mono px-1.5 py-0.5 rounded-full"
+                        style={{ color: pst.color, backgroundColor: pst.bg, border: `1px solid ${pst.border}` }}
+                      >
+                        {pst.label}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Building2 size={9} className="text-muted-foreground flex-shrink-0" />
+                      <p className="text-[10px] font-mono text-muted-foreground truncate">{project.client}</p>
+                      <span className="text-[10px] font-mono text-muted-foreground flex-shrink-0 ml-auto">
+                        Wk {project.week}/{project.totalWeeks}
+                      </span>
+                    </div>
+                    {/* Mini progress bar */}
+                    <div className="mt-1.5 h-0.5 w-full rounded-full bg-muted overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${progressPct}%`, backgroundColor: project.color }} />
+                    </div>
+                  </div>
+
+                  {/* Selected check */}
+                  {isSelected && <Check size={12} className="flex-shrink-0" style={{ color: "#16a34a" }} />}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Footer hint */}
+          <div className="px-4 py-2.5 border-t border-border" style={{ backgroundColor: "#fafafa" }}>
+            <p className="text-[10px] font-mono text-muted-foreground">
+              <FolderKanban size={9} className="inline mr-1" />
+              {MOCK_PROJECTS.length} projects · Supabase-ready
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -797,9 +980,12 @@ export default function App() {
   const ab = await file.arrayBuffer();
   const wb = XLSX.read(ab, { type: "array" });
   const ws = wb.Sheets[wb.SheetNames[0]];
-  const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: "" });
+  const jsonRows = XLSX.utils.sheet_to_json<(string | number)[]>(ws, {
+    header: 1,
+    defval: "",
+  });
 
-  const parsed = rowsToSprintsFromSheet(json);
+  const parsed = rowsToSprintsFromSheetRows(jsonRows);
   setSprints(parsed);
 };
   
@@ -809,7 +995,7 @@ export default function App() {
   const inProgressCount = allTasks.filter((t) => t.status === "Working on").length;
   const notYetCount = allTasks.filter((t) => t.status === "Not yet").length;
   const pendingCount = allTasks.filter((t) => t.status === "Pending").length;
-  const overallPct = Math.round((achievedCount / totalTasks) * 100);
+  const overallPct = totalTasks === 0 ? 0 : Math.round((achievedCount / totalTasks) * 100);
 
   const chartData = sprints.map((sprint) => {
     const { achieved, inProgress, total } = getSprintProgress(sprint);
@@ -931,7 +1117,7 @@ export default function App() {
                   <p className="text-xs text-muted-foreground font-mono mb-1">/{totalTasks} tasks</p>
                 </div>
                 <div className="mt-3 h-1.5 rounded-full" style={{ backgroundColor: `${stat.color}20` }}>
-                  <div className="h-full rounded-full" style={{ width: `${(stat.value / totalTasks) * 100}%`, backgroundColor: stat.color }} />
+                  <div className="h-full rounded-full" style={{ width: `${totalTasks === 0 ? 0 : (stat.value / totalTasks) * 100}%`, backgroundColor: stat.color }} />
                 </div>
               </div>
             ))}
