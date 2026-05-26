@@ -43,6 +43,7 @@ interface Task {
   description: string;
   status: TaskStatus;
   feedback?: string;
+  retryRequired?: boolean;
   weeklyProgress: number;
   overallProgress: number;
 }
@@ -163,26 +164,15 @@ function ProgressRing({ pct, size = 56, stroke = 5, color }: { pct: number; size
   );
 }
 
-const TRAFFIC_STATUSES: TaskStatus[] = ["Achieved", "Working on", "Not yet", "Pending"];
-const TRAFFIC_COLORS: Record<TaskStatus, string> = {
-  Achieved: "#16a34a",
-  "Working on": "#d97706",
-  "Not yet": "#dc2626",
-  Pending: "#9ca3af",
-};
-
 function TrafficLight({ status }: { status: TaskStatus }) {
+  const colors: Record<string, string> = { Achieved: "#16a34a", "Working on": "#d97706", "Not yet": "#dc2626" };
   return (
     <div className="flex gap-[5px] items-center">
       {(["Achieved", "Working on", "Not yet"] as const).map((s) => (
-        <div
-          key={s}
-          className="w-3 h-3 rounded-full transition-all"
-          style={{
-            backgroundColor: status === "Pending" ? "#e5e7eb" : status === s ? TRAFFIC_COLORS[s] : "#e5e7eb",
-            boxShadow: status === s ? `0 0 0 2px white, 0 0 0 3px ${STATUS_CONFIG[status].color}` : "none",
-          }}
-        />
+        <div key={s} className="w-3 h-3 rounded-full transition-all" style={{
+          backgroundColor: status === "Pending" ? "#e5e7eb" : status === s ? colors[s] : "#e5e7eb",
+          boxShadow: status === s ? `0 0 0 2px white, 0 0 0 3px ${STATUS_CONFIG[status].color}` : "none",
+        }} />
       ))}
     </div>
   );
@@ -199,16 +189,12 @@ function StatusBadge({ status }: { status: TaskStatus }) {
   );
 }
 
-const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
+const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white border border-border rounded-xl px-4 py-3 shadow-lg text-xs font-mono">
-        <p className="font-semibold text-foreground mb-1">{String(label ?? "")}</p>
-        {payload.map((p, idx) => (
-          <p key={`${p.name ?? "item"}-${idx}`} style={{ color: p.color ?? "#111" }}>
-            {p.name}: {p.value}
-          </p>
-        ))}
+        <p className="font-semibold text-foreground mb-1">{label}</p>
+        {payload.map((p: any) => <p key={p.name} style={{ color: p.fill }}>{p.name}: {p.value}</p>)}
       </div>
     );
   }
@@ -739,6 +725,7 @@ function EmailTemplateView({ sprints, chartData, overallPct }: { sprints: Sprint
 export default function App() {
   const [sprints, setSprints] = useState<Sprint[]>(INITIAL_DATA);
   const [view, setView] = useState<View>("dashboard");
+  const [selectedFile, setSelectedFile] = useState("");
   const [feedbackModal, setFeedbackModal] = useState<{ taskId: string; taskName: string; existing?: string } | null>(null);
 
   const handleSaveFeedback = (taskId: string, feedback: string) => {
@@ -808,29 +795,56 @@ export default function App() {
               </div>
             </div>
           </div>
+        </div>
 
-          {/* ── Action bar ── */}
+         <input
+            id="project-import"
+            type="file"
+            accept=".xlsx"
+            hidden
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                setSelectedFile(file.name);
+              }
+            }}
+          />
+
+        {/* ── Action bar ── */}
           <div className="border-t border-border py-2.5 flex items-center gap-2 flex-wrap">
-           <button
+            <button
               onClick={() => {
-                window.location.href = `${import.meta.env.BASE_URL}templates/cockpit_template.xlsx`;
-              }}
+              const link = document.createElement("a");
+              link.href = `${import.meta.env.BASE_URL}templates/cockpit_template.xlsx`;
+              link.download = "cockpit_template.xlsx";
+              document.body.appendChild(link);
+              link.click();
+             document.body.removeChild(link);
+        }}
+              
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground bg-white hover:border-foreground/25 hover:text-foreground transition-all"
             >
               <Download size={12} />
               Download Template
             </button>
-          <button
-            onClick={() => {}}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground bg-white hover:border-foreground/25 hover:text-foreground transition-all"
-          >
-            <Upload size={12} />
-            Import Project Data
-          </button>
-        </div>
-      </div>
-    </header>
-    
+
+            <button
+              onClick={() => {
+                document.getElementById("project-import")?.click();
+              }}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground bg-white hover:border-foreground/25 hover:text-foreground transition-all"
+            >
+              <Upload size={12} />
+              Import Project Data
+            </button>
+          </div>
+      </header>
+      {selectedFile && (
+        <p className="text-xs text-green-600">
+          ✓ {selectedFile} loaded successfully
+        </p>
+      )}
+
       {/* ── Dashboard view ── */}
       {view === "dashboard" && (
         <main className="max-w-6xl mx-auto px-6 py-8">
