@@ -812,12 +812,15 @@ export default function App() {
           {/* ── Action bar ── */}
           <div className="border-t border-border py-2.5 flex items-center gap-2 flex-wrap">
             <button
-              onClick={() => {}}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground bg-white hover:border-foreground/25 hover:text-foreground transition-all"
-            >
-              <Download size={12} />
-              Download Template
-            </button>
+             <button
+                onClick={() => {
+                  window.location.href = `${import.meta.env.BASE_URL}templates/cockpit_template.xlsx`;
+                }}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground bg-white hover:border-foreground/25 hover:text-foreground transition-all"
+              >
+                <Download size={12} />
+                Download Template
+              </button>
             <button
               onClick={() => {}}
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground bg-white hover:border-foreground/25 hover:text-foreground transition-all"
