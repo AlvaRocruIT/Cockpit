@@ -84,18 +84,26 @@ function pick(obj: Record<string, unknown>, keys: string[]) {
   return "";
 }
 
+function toDisplayPercent(value: unknown): number {
+  const n = Number(String(value ?? "").replace("%", "").replace(",", ".").trim());
+  if (!Number.isFinite(n)) return 0;
+  // Excel percent-formatted cells often come as 0..1
+  return n <= 1 ? Number((n * 100).toFixed(2)) : Number(n.toFixed(2));
+}
+
 function rowsToSprintsFromSheet(json: Record<string, unknown>[]): Sprint[] {
   const sprintMap = new Map<string, Sprint>();
 
   for (const row of json) {
-    const weekRaw = pick(row, ["Week", "week", "Week Number", "Number"]);
+    const weekRaw = pick(row, ["Week", "week"]);
     const milestoneRaw = pick(row, ["Milestone", "milestone"]);
     const taskRaw = pick(row, ["Task", "task"]);
-    const descRaw = pick(row, ["Task description", "Description", "description"]);
+    const descRaw = pick(row, ["Task description", "Task Description", "description"]);
     const statusRaw = pick(row, ["Status", "status"]);
-    const feedbackRaw = pick(row, ["Client feedback", "Feedback", "feedback"]);
-    const retryRaw = pick(row, ["Retry required?", "Retry required", "retryRequired"]);
-
+    const feedbackRaw = pick(row, ["Client feedback", "Client Feedback", "feedback"]);
+    const retryRaw = pick(row, ["Retry required", "Retry required?", "retryRequired"]);
+    const weeklyRaw = pick(row, ["Weekly  progress", "Weekly progress", "Weekly Progress%", "Weekly Progress"]);
+    const overallRaw = pick(row, ["Overall progress ", "Overall progress", "Overall progress %", "Overall Progress %"]);
     const week = Number(String(weekRaw).trim());
     const milestone = String(milestoneRaw).trim();
     const task = String(taskRaw).trim();
@@ -121,8 +129,8 @@ function rowsToSprintsFromSheet(json: Record<string, unknown>[]): Sprint[] {
       status: normalizeStatus(statusRaw),
       feedback: String(feedbackRaw ?? "").trim() || undefined,
       retryRequired: ["true", "yes", "1"].includes(String(retryRaw).trim().toLowerCase()),
-      weeklyProgress: 0,
-      overallProgress: 0,
+      weeklyProgress: toDisplayPercent(weeklyRaw),
+      overallProgress: toDisplayPercent(overallRaw),
     });
   }
 
@@ -170,37 +178,6 @@ function rowsToSprints(rows: RawTemplateRow[]): Sprint[] {
 
   return Array.from(map.values()).sort((a, b) => a.week - b.week);
 }
-
-function parseWorkbookToRows(file: File): Promise<RawTemplateRow[]> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = e.target?.result;
-        const wb = XLSX.read(data, { type: "array" });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: "" });
-
-        // map Excel column headers to your internal shape
-        const rows: RawTemplateRow[] = json.map((r) => ({
-          week: r["Week"] ?? r["week"] ?? r["Number"],
-          milestone: r["Milestone"] ?? r["milestone"],
-          task: r["Task"] ?? r["task"],
-          description: r["Task description"] ?? r["Description"] ?? r["description"],
-          status: r["Status"] ?? r["status"],
-          feedback: r["Client feedback"] ?? r["feedback"],
-          retryRequired: r["Retry required?"] ?? r["retryRequired"],
-        }));
-
-        resolve(rows);
-      } catch (err) {
-        reject(err);
-      }
-    };
-    reader.onerror = reject;
-    reader.readAsArrayBuffer(file);
-  });
-};
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -639,17 +616,6 @@ function EmailTemplateView({ sprints, chartData, overallPct }: { sprints: Sprint
 
   const completedOptions = sprints.map((s, i) => ({ value: i, label: `Week ${s.week} — ${s.title}` }));
   const nextOptions = sprints.map((s, i) => ({ value: i, label: `Week ${s.week} — ${s.title}` }));
-
-  async function handleFileUpload(file: File) {
-  const ab = await file.arrayBuffer();
-  const wb = XLSX.read(ab, { type: "array" });
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: "" });
-  console.log(Object.keys(json[0] ?? {}));
-
-  const parsed = rowsToSprintsFromSheet(json);
-  setSprints(parsed);
-}
   
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
@@ -827,6 +793,16 @@ export default function App() {
     );
   };
 
+  const handleFileUpload = async (file: File) => {
+  const ab = await file.arrayBuffer();
+  const wb = XLSX.read(ab, { type: "array" });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: "" });
+
+  const parsed = rowsToSprintsFromSheet(json);
+  setSprints(parsed);
+};
+  
   const allTasks = sprints.flatMap((s) => s.tasks);
   const totalTasks = allTasks.length;
   const achievedCount = allTasks.filter((t) => t.status === "Achieved").length;
@@ -892,12 +868,12 @@ export default function App() {
             type="file"
             accept=".xlsx"
             hidden
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                setSelectedFile(file.name);
-              }
-            }}
+            onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            setSelectedFile(file.name);
+            await handleFileUpload(file);
+          }}
           />
 
         {/* ── Action bar ── */}
@@ -905,7 +881,7 @@ export default function App() {
             <button
               onClick={() => {
               const link = document.createElement("a");
-              link.href = `${import.meta.env.BASE_URL}templates/cockpit_template.xlsx`;
+              link.href = "/templates/cockpit_template.xlsx";
               link.download = "cockpit_template.xlsx";
               document.body.appendChild(link);
               link.click();
