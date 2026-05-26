@@ -662,13 +662,22 @@ function EmailTemplateView({ sprints, chartData, overallPct }: { sprints: Sprint
 
           {/* Generate button */}
           <button
-            onClick={() => {
-              alert("CLICK DETECTED");
-            }}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground bg-white hover:border-foreground/25 hover:text-foreground transition-all"
+            onClick={handleGenerate}
+            disabled={generating}
+            className="w-full flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl text-sm font-semibold text-white transition-all"
+            style={{ backgroundColor: generating ? "#555" : "#111111" }}
           >
-            <Download size={12} />
-            Download Template
+            {generating ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Sparkles size={15} />
+                Generate Email Update
+              </>
+            )}
           </button>
 
           {generated && (
