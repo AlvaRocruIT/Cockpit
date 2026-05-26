@@ -31,6 +31,7 @@ import {
   Download,
   Upload,
 } from "lucide-react";
+import * as XLSX from "xlsx";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -58,71 +59,148 @@ interface Sprint {
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
-const INITIAL_DATA: Sprint[] = [
-  {
-    id: 1,
-    week: 1,
-    title: "Architecture & Infrastructure",
-    tasks: [
-      { id: "1-1", name: "Backend Setup", description: "Build and structure the Python backend environment (FastAPI/Uvicorn), including API routes, conversational logic flow, environment variables, and secure service orchestration for the AI.", status: "Achieved", weeklyProgress: 16.67, overallProgress: 3.33 },
-      { id: "1-2", name: "Render Deployment", description: "Deploy the backend infrastructure through Render with production-ready environment configuration, HTTPS access, service persistence, and GitHub-based deployment.", status: "Achieved", weeklyProgress: 16.67, overallProgress: 3.33 },
-      { id: "1-3", name: "Supabase Configuration", description: "Configure the Supabase PostgreSQL environment to support conversation persistence, knowledge-base storage, retrieval operations, and future scalability requirements.", status: "Achieved", weeklyProgress: 16.67, overallProgress: 3.33 },
-      { id: "1-4", name: "LLM Configuration", description: "Integrate and configure the selected language model (GPT-4o-mini or Claude Haiku), including API communication, prompt orchestration, response handling, and multilingual conversational behavior.", status: "Achieved", weeklyProgress: 16.67, overallProgress: 3.33 },
-      { id: "1-5", name: "Initial RAG Pipeline", description: "Implement the first Retrieval-Augmented Generation workflow, enabling the system to retrieve relevant contextual information from internal documents before generating responses.", status: "Achieved", feedback: "Amazing!", weeklyProgress: 16.67, overallProgress: 3.33 },
-      { id: "1-6", name: "Knowledge-base Integration", description: "Connect the chatbot to the client's knowledge sources (PDFs, Docs, FAQs), including document ingestion, text extraction, chunking, embedding preparation, and retrieval indexing.", status: "Achieved", weeklyProgress: 16.67, overallProgress: 3.33 },
-    ],
-  },
-  {
-    id: 2,
-    week: 2,
-    title: "Conversational System",
-    currentWeek: true,
-    tasks: [
-      { id: "2-1", name: "Contextual Memory", description: "Implement short-term conversational memory so the assistant can retain relevant context across interactions and provide more natural, continuous customer support responses.", status: "Achieved", weeklyProgress: 16.67, overallProgress: 3.33 },
-      { id: "2-2", name: "Retrieval Optimization", description: "Improve retrieval accuracy by refining chunking strategy, search relevance, top-k selection, and contextual filtering to reduce hallucinations and improve response precision.", status: "Achieved", weeklyProgress: 16.67, overallProgress: 3.33 },
-      { id: "2-3", name: "Prompt Orchestration", description: "Design and structure the system prompts, contextual instructions, and response logic to ensure professional, consistent, and reliable conversational behavior.", status: "Working on", feedback: "When will be ready?", weeklyProgress: 0, overallProgress: 0 },
-      { id: "2-4", name: "Frontend Integration", description: "Connect the conversational backend to the web-based chat interface, enabling real-time interaction between users and the AI assistant through secure API communication.", status: "Working on", weeklyProgress: 0, overallProgress: 0 },
-      { id: "2-5", name: "Dashboard Adjustment", description: "Refine and adapt the monitoring/dashboard environment to improve conversational visibility, knowledge-base management, and operational control during testing and deployment.", status: "Working on", feedback: "I will need some special attention on this layer, I need it friendly and intuitive for the team.", weeklyProgress: 0, overallProgress: 0 },
-      { id: "2-6", name: "Conversational Persistence", description: "Implement persistent conversation storage so interactions, session history, and contextual data can be securely retained and reused.", status: "Not yet", weeklyProgress: 0, overallProgress: 0 },
-    ],
-  },
-  {
-    id: 3,
-    week: 3,
-    title: "UX & Integrations",
-    tasks: [
-      { id: "3-1", name: "Chat Widget Polishing", description: "Refine the conversational interface UX/UI, improving responsiveness, usability, visual consistency, and overall interaction quality across desktop and mobile environments.", status: "Pending", weeklyProgress: 0, overallProgress: 0 },
-      { id: "3-2", name: "Knowledge-Base Management", description: "Implement and organize the workflows required to update, maintain, and manage the chatbot's internal knowledge sources efficiently and securely.", status: "Pending", weeklyProgress: 0, overallProgress: 0 },
-      { id: "3-3", name: "WhatsApp/Telegram Integration", description: "Integrate the conversational agent with WhatsApp or Telegram APIs to enable multi-channel customer interaction through external messaging platforms.", status: "Pending", weeklyProgress: 0, overallProgress: 0 },
-      { id: "3-4", name: "Internal Testing", description: "Perform structured internal testing across conversational flows, retrieval quality, session behavior, and multilingual interactions to identify operational issues before deployment.", status: "Pending", weeklyProgress: 0, overallProgress: 0 },
-      { id: "3-5", name: "Error Handling", description: "Implement fallback behaviors, exception management, timeout handling, and recovery logic to improve system stability and resilience during unexpected failures.", status: "Pending", weeklyProgress: 0, overallProgress: 0 },
-      { id: "3-6", name: "Monitoring / Logging", description: "Configure monitoring and logging mechanisms to track conversations, system activity, retrieval performance, and operational errors throughout the development lifecycle.", status: "Pending", weeklyProgress: 0, overallProgress: 0 },
-    ],
-  },
-  {
-    id: 4,
-    week: 4,
-    title: "Optimization & Reliability",
-    tasks: [
-      { id: "4-1", name: "Retrieval Tuning", description: "Fine-tune retrieval behavior by adjusting ranking logic, contextual relevance, chunk selection, and search precision to improve the overall quality of generated responses.", status: "Pending", weeklyProgress: 0, overallProgress: 0 },
-      { id: "4-2", name: "Prompt Refinement", description: "Refine and optimize prompting strategies based on real interaction data to reduce inconsistencies, improve tone adherence, and increase task completion accuracy.", status: "Pending", weeklyProgress: 0, overallProgress: 0 },
-      { id: "4-3", name: "Load & Stress Testing", description: "Validate system performance under concurrent usage, measure API response times, and identify bottlenecks before full production deployment.", status: "Pending", weeklyProgress: 0, overallProgress: 0 },
-      { id: "4-4", name: "Security Review", description: "Audit API key management, data access controls, user session handling, and input sanitization to ensure the system meets baseline security standards.", status: "Pending", weeklyProgress: 0, overallProgress: 0 },
-      { id: "4-5", name: "Documentation", description: "Produce technical documentation covering system architecture, deployment process, API references, and operational runbooks for ongoing maintenance.", status: "Pending", weeklyProgress: 0, overallProgress: 0 },
-    ],
-  },
-  {
-    id: 5,
-    week: 5,
-    title: "Delivery & Handoff",
-    tasks: [
-      { id: "5-1", name: "Client Walkthrough", description: "Conduct a guided walkthrough of the full system with the client team, demonstrating all features, edge cases, and operational workflows.", status: "Pending", weeklyProgress: 0, overallProgress: 0 },
-      { id: "5-2", name: "Final QA Round", description: "Execute a complete end-to-end quality assurance pass across all features and integration points before handoff.", status: "Pending", weeklyProgress: 0, overallProgress: 0 },
-      { id: "5-3", name: "Production Deployment", description: "Deploy the final production-ready system to live infrastructure, validate all services, and confirm operational health.", status: "Pending", weeklyProgress: 0, overallProgress: 0 },
-      { id: "5-4", name: "Knowledge Transfer", description: "Transfer all credentials, repositories, documentation, and operational control to the client team with proper handoff protocols.", status: "Pending", weeklyProgress: 0, overallProgress: 0 },
-    ],
-  },
-];
+  type RawTemplateRow = {
+  week?: number | string;
+  milestone?: string;
+  task?: string;
+  description?: string;
+  status?: TaskStatus | string;
+  feedback?: string;
+  retryRequired?: boolean | string;
+};
+
+function normalizeStatus(value: unknown): TaskStatus {
+  const v = String(value ?? "").trim().toLowerCase();
+  if (v === "achieved") return "Achieved";
+  if (v === "working on" || v === "in progress") return "Working on";
+  if (v === "not yet") return "Not yet";
+  return "Pending";
+}
+
+function pick(obj: Record<string, unknown>, keys: string[]) {
+  for (const k of keys) {
+    if (obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== "") return obj[k];
+  }
+  return "";
+}
+
+function rowsToSprintsFromSheet(json: Record<string, unknown>[]): Sprint[] {
+  const sprintMap = new Map<string, Sprint>();
+
+  for (const row of json) {
+    const weekRaw = pick(row, ["Week", "week", "Week Number", "Number"]);
+    const milestoneRaw = pick(row, ["Milestone", "milestone"]);
+    const taskRaw = pick(row, ["Task", "task"]);
+    const descRaw = pick(row, ["Task description", "Description", "description"]);
+    const statusRaw = pick(row, ["Status", "status"]);
+    const feedbackRaw = pick(row, ["Client feedback", "Feedback", "feedback"]);
+    const retryRaw = pick(row, ["Retry required?", "Retry required", "retryRequired"]);
+
+    const week = Number(String(weekRaw).trim());
+    const milestone = String(milestoneRaw).trim();
+    const task = String(taskRaw).trim();
+
+    // skip non-task rows (meta/header/milestone title-only rows)
+    if (!Number.isFinite(week) || week <= 0 || !milestone || !task) continue;
+
+    const key = `${week}__${milestone}`;
+    if (!sprintMap.has(key)) {
+      sprintMap.set(key, {
+        id: sprintMap.size + 1,
+        week,
+        title: milestone,
+        tasks: [],
+      });
+    }
+
+    const sprint = sprintMap.get(key)!;
+    sprint.tasks.push({
+      id: `${sprint.id}-${sprint.tasks.length + 1}`,
+      name: task,
+      description: String(descRaw ?? "").trim(),
+      status: normalizeStatus(statusRaw),
+      feedback: String(feedbackRaw ?? "").trim() || undefined,
+      retryRequired: ["true", "yes", "1"].includes(String(retryRaw).trim().toLowerCase()),
+      weeklyProgress: 0,
+      overallProgress: 0,
+    });
+  }
+
+  return [...sprintMap.values()].sort((a, b) => a.week - b.week);
+}
+
+function toBool(value: unknown): boolean {
+  const v = String(value ?? "").trim().toLowerCase();
+  return v === "true" || v === "yes" || v === "1";
+}
+
+function rowsToSprints(rows: RawTemplateRow[]): Sprint[] {
+  const map = new Map<string, Sprint>();
+
+  rows.forEach((row, idx) => {
+    const week = Number(row.week);
+    const milestoneTitle = String(row.milestone ?? "").trim();
+    const taskName = String(row.task ?? "").trim();
+
+    // skip non-task rows (meta/header/empty)
+    if (!Number.isFinite(week) || week <= 0 || !milestoneTitle || !taskName) return;
+
+    const sprintKey = `${week}__${milestoneTitle}`;
+    if (!map.has(sprintKey)) {
+      map.set(sprintKey, {
+        id: map.size + 1,
+        week,
+        title: milestoneTitle,
+        tasks: [],
+      });
+    }
+  
+    const sprint = map.get(sprintKey)!;
+    sprint.tasks.push({
+      id: `${sprint.id}-${sprint.tasks.length + 1}`,
+      name: taskName,
+      description: String(row.description ?? "").trim(),
+      status: normalizeStatus(row.status),
+      feedback: String(row.feedback ?? "").trim() || undefined,
+      retryRequired: toBool(row.retryRequired),
+      weeklyProgress: 0,   // automate later
+      overallProgress: 0,  // automate later
+    });
+  });
+
+  return Array.from(map.values()).sort((a, b) => a.week - b.week);
+}
+
+function parseWorkbookToRows(file: File): Promise<RawTemplateRow[]> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = e.target?.result;
+        const wb = XLSX.read(data, { type: "array" });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: "" });
+
+        // map Excel column headers to your internal shape
+        const rows: RawTemplateRow[] = json.map((r) => ({
+          week: r["Week"] ?? r["week"] ?? r["Number"],
+          milestone: r["Milestone"] ?? r["milestone"],
+          task: r["Task"] ?? r["task"],
+          description: r["Task description"] ?? r["Description"] ?? r["description"],
+          status: r["Status"] ?? r["status"],
+          feedback: r["Client feedback"] ?? r["feedback"],
+          retryRequired: r["Retry required?"] ?? r["retryRequired"],
+        }));
+
+        resolve(rows);
+      } catch (err) {
+        reject(err);
+      }
+    };
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
+};
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -140,7 +218,8 @@ function getSprintProgress(sprint: Sprint) {
   const achieved = tasks.filter((t) => t.status === "Achieved").length;
   const inProgress = tasks.filter((t) => t.status === "Working on").length;
   const total = tasks.length;
-  return { achieved, inProgress, total, pct: Math.round((achieved / total) * 100) };
+  const pct = total === 0 ? 0 : Math.round((achieved / total) * 100);
+  return { achieved, inProgress, total, pct };
 }
 
 function getSprintColor(sprint: Sprint) {
@@ -561,6 +640,17 @@ function EmailTemplateView({ sprints, chartData, overallPct }: { sprints: Sprint
   const completedOptions = sprints.map((s, i) => ({ value: i, label: `Week ${s.week} — ${s.title}` }));
   const nextOptions = sprints.map((s, i) => ({ value: i, label: `Week ${s.week} — ${s.title}` }));
 
+  async function handleFileUpload(file: File) {
+  const ab = await file.arrayBuffer();
+  const wb = XLSX.read(ab, { type: "array" });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: "" });
+  console.log(Object.keys(json[0] ?? {}));
+
+  const parsed = rowsToSprintsFromSheet(json);
+  setSprints(parsed);
+}
+  
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6 items-start">
@@ -723,7 +813,7 @@ function EmailTemplateView({ sprints, chartData, overallPct }: { sprints: Sprint
 // ─── Root App ─────────────────────────────────────────────────────────────────
 
 export default function App() {
-  const [sprints, setSprints] = useState<Sprint[]>(INITIAL_DATA);
+  const [sprints, setSprints] = useState<Sprint[]>([]);
   const [view, setView] = useState<View>("dashboard");
   const [selectedFile, setSelectedFile] = useState("");
   const [feedbackModal, setFeedbackModal] = useState<{ taskId: string; taskName: string; existing?: string } | null>(null);
