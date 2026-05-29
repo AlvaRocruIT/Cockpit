@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -20,7 +20,9 @@ import {
   AlertCircle,
   Mail,
   LayoutDashboard,
-  Sparkles,
+  Sparkles,  
+  Building2,
+  FolderKanban,
   ExternalLink,
   ArrowRight,
   Copy,
@@ -232,7 +234,7 @@ interface Project {
 }
 
 const MOCK_PROJECTS: Project[] = [
-  { id: "p1", name: "Conversational AI Platform", client: "Luke Hartmann", color: "#111111", initials: "LH", status: "active",    week: 2, totalWeeks: 5 },
+  { id: "p1", name: "Conversational AI Platform", client: "Luke Hartmann", color: "#111111", initials: "LH", status: "active",    week: 3, totalWeeks: 5 },
   { id: "p2", name: "E-Commerce Chatbot",         client: "Sofía Martínez", color: "#6366f1", initials: "SM", status: "active",    week: 4, totalWeeks: 6 },
   { id: "p3", name: "Internal HR Assistant",      client: "Apex Corp",      color: "#0891b2", initials: "AC", status: "paused",    week: 1, totalWeeks: 4 },
   { id: "p4", name: "Knowledge Base Agent",       client: "DataSync GmbH",  color: "#16a34a", initials: "DG", status: "active",    week: 3, totalWeeks: 5 },
@@ -291,7 +293,7 @@ function ProjectSelector({ selected, onChange }: { selected: Project; onChange: 
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute top-full left-0 mt-2 w-72 bg-white rounded-2xl border border-border shadow-xl z-50 overflow-hidden">
+        <div className="absolute top-full left-0 mt-2 w-72 bg-[#f3f3f3] rounded-2xl border border-[#e2e2e2] shadow-xl z-50 overflow-hidden">
           {/* Dropdown header */}
           <div className="px-4 py-3 border-b border-border" style={{ backgroundColor: "#fafafa" }}>
             <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">Projects</p>
@@ -311,10 +313,7 @@ function ProjectSelector({ selected, onChange }: { selected: Project; onChange: 
                   style={{ backgroundColor: isSelected ? "#f5f5f5" : undefined }}
                 >
                   {/* Avatar */}
-                  <div
-                    className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-white text-xs font-bold font-mono"
-                    style={{ backgroundColor: project.color }}
-                  >
+                  <div className="absolute top-full left-0 mt-2 w-72 bg-[#f3f3f3] rounded-2xl border border-[#e2e2e2] shadow-xl z-50 overflow-hidden">
                     {project.initials}
                   </div>
 
@@ -343,7 +342,12 @@ function ProjectSelector({ selected, onChange }: { selected: Project; onChange: 
                   </div>
 
                   {/* Selected check */}
-                  {isSelected && <Check size={12} className="flex-shrink-0" style={{ color: "#16a34a" }} />}
+                  {isSelected && (
+                    <div className="flex-shrink-0 flex items-center gap-1">
+                      <span className="w-8 h-[2px] rounded-full" style={{ backgroundColor: project.color }} />
+                      <Check size={12} className="flex-shrink-0" style={{ color: "#16a34a" }} />
+                    </div>
+                  )}
                 </button>
               );
             })}
@@ -965,6 +969,7 @@ export default function App() {
   const [sprints, setSprints] = useState<Sprint[]>([]);
   const [view, setView] = useState<View>("dashboard");
   const [selectedFile, setSelectedFile] = useState("");
+  const [selectedProject, setSelectedProject] = useState<Project>(MOCK_PROJECTS[0]);
   const [feedbackModal, setFeedbackModal] = useState<{ taskId: string; taskName: string; existing?: string } | null>(null);
 
   const handleSaveFeedback = (taskId: string, feedback: string) => {
@@ -1020,6 +1025,12 @@ export default function App() {
               </div>
             </div>
             <div className="flex items-center gap-4">
+              {/* Project selector */}
+              <div>
+                <div className="mt-2">
+                  <ProjectSelector selected={selectedProject} onChange={setSelectedProject} />
+                </div>
+              </div>
               {/* Tab nav */}
               <div className="flex items-center gap-1 p-1 rounded-xl border border-border bg-secondary">
                 <button
