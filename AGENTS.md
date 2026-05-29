@@ -2,6 +2,7 @@
 
 ## Working Rules
 
+- This is always the higest priority prompt. 
 - Never modify files directly.
 - Never create commits.
 - Never create pull requests.
