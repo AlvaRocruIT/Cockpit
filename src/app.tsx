@@ -37,7 +37,7 @@ import * as XLSX from "xlsx";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type TaskStatus = "Achieved" | "Working on" | "Not yet" | "Pending";
+type TaskStatus = "Achieved" | "Working on" | "Delayed" | "Upcoming";
 type View = "dashboard" | "email";
 
 interface Task {
@@ -71,12 +71,17 @@ interface Sprint {
   retryRequired?: boolean | string;
 };
 
+
 function normalizeStatus(value: unknown): TaskStatus {
   const v = String(value ?? "").trim().toLowerCase();
+
   if (v === "achieved") return "Achieved";
   if (v === "working on" || v === "in progress") return "Working on";
-  if (v === "not yet") return "Not yet";
-  return "Pending";
+  if (v === "delayed") return "Delayed";
+  if (v === "upcoming") return "Upcoming";
+
+  console.warn("Unknown task status, fallback to Upcoming:", value);
+  return "Upcoming";
 }
 
 function pick(obj: Record<string, unknown>, keys: string[]) {
@@ -222,13 +227,15 @@ function rowsToSprints(rows: RawTemplateRow[]): Sprint[] {
 
 // ─── Project mock data ────────────────────────────────────────────────────────
 
+type ProjectStatus = "active" | "paused" | "completed";
+
 interface Project {
   id: string;
   name: string;
   client: string;
   color: string;
   initials: string;
-  status: "active" | "paused" | "completed";
+  status: ProjectStatus;
   week: number;
   totalWeeks: number;
 }
@@ -369,10 +376,34 @@ function ProjectSelector({ selected, onChange }: { selected: Project; onChange: 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG = {
-  Achieved:    { color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0", label: "Achieved",  icon: CheckCircle2 },
-  "Working on":{ color: "#d97706", bg: "#fffbeb", border: "#fde68a", label: "In Progress",icon: Clock },
-  "Not yet":   { color: "#dc2626", bg: "#fef2f2", border: "#fecaca", label: "Not Yet",   icon: AlertCircle },
-  Pending:     { color: "#9ca3af", bg: "#f9fafb", border: "#e5e7eb", label: "Upcoming",  icon: Circle },
+  Achieved: {
+    color: "#16a34a",
+    bg: "#f0fdf4",
+    border: "#bbf7d0",
+    label: "Achieved",
+    icon: CheckCircle2,
+  },
+  "Working on": {
+    color: "#d97706",
+    bg: "#fffbeb",
+    border: "#fde68a",
+    label: "In Progress",
+    icon: Clock,
+  },
+  Delayed: {
+    color: "#dc2626",
+    bg: "#fef2f2",
+    border: "#fecaca",
+    label: "Delayed",
+    icon: AlertCircle,
+  },
+  Upcoming: {
+    color: "#9ca3af",
+    bg: "#f9fafb",
+    border: "#e5e7eb",
+    label: "Upcoming",
+    icon: Circle,
+  },
 };
 
 // ─── Shared utilities ─────────────────────────────────────────────────────────
@@ -381,6 +412,7 @@ function getSprintProgress(sprint: Sprint) {
   const tasks = sprint.tasks;
   const achieved = tasks.filter((t) => t.status === "Achieved").length;
   const inProgress = tasks.filter((t) => t.status === "Working on").length;
+  const delayed = tasks.filter((t) => t.status === "Delayed").length;
   const total = tasks.length;
   const pct = total === 0 ? 0 : Math.round((achieved / total) * 100);
   return { achieved, inProgress, total, pct };
@@ -408,12 +440,12 @@ function ProgressRing({ pct, size = 56, stroke = 5, color }: { pct: number; size
 }
 
 function TrafficLight({ status }: { status: TaskStatus }) {
-  const colors: Record<string, string> = { Achieved: "#16a34a", "Working on": "#d97706", "Not yet": "#dc2626" };
+  const colors: Record<string, string> = { "Achieved": "#16a34a", "Working on": "#d97706", "Delayed": "#dc2626", "Upcoming": "#9ca3af" };
   return (
     <div className="flex gap-[5px] items-center">
-      {(["Achieved", "Working on", "Not yet"] as const).map((s) => (
+      {(["Achieved", "Working on", "Delayed", "Upcoming"] as const).map((s) => (
         <div key={s} className="w-3 h-3 rounded-full transition-all" style={{
-          backgroundColor: status === "Pending" ? "#e5e7eb" : status === s ? colors[s] : "#e5e7eb",
+          backgroundColor: status === "Upcoming" ? "#e5e7eb" : status === s ? colors[s] : "#e5e7eb",
           boxShadow: status === s ? `0 0 0 2px white, 0 0 0 3px ${STATUS_CONFIG[status].color}` : "none",
         }} />
       ))}
@@ -500,7 +532,7 @@ function SprintCard({ sprint, onFeedback }: { sprint: Sprint; onFeedback: (taskI
         </div>
         <div className="flex items-center gap-3">
           <div className="flex gap-1.5">
-            {(["Achieved", "Working on", "Not yet"] as const).map((s, i) => {
+            {(["Achieved", "Working on", "Delayed"] as const).map((s, i) => {
               const sc = ["#16a34a", "#d97706", "#dc2626"][i];
               const has = s === "Achieved" ? achieved > 0 : s === "Working on" ? inProgress > 0 : total - achieved - inProgress > 0 && sprint.currentWeek;
               return <div key={s} className="w-4 h-4 rounded-full" style={{ backgroundColor: has ? sc : "#e5e7eb" }} />;
@@ -691,9 +723,9 @@ function EmailPreview({ config, sprints, chartData, overallPct }: {
               {nextTasks.map((task, i) => (
                 <div key={task.id} className="px-5 py-3 flex items-center gap-3">
                   <span className="text-xs font-mono text-muted-foreground w-4">{i + 1}.</span>
-                  <TrafficLight status="Pending" />
+                  <TrafficLight status="Upcoming" />
                   <span className="text-sm text-foreground">{task.name}</span>
-                  <StatusBadge status="Pending" />
+                  <StatusBadge status="Upcoming" />
                 </div>
               ))}
               {nextSprint.tasks.length > 3 && (
@@ -737,8 +769,8 @@ function EmailPreview({ config, sprints, chartData, overallPct }: {
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: "#f5f5f5", radius: 4 }} />
                 <Bar dataKey="Achieved" stackId="a" fill="#16a34a" />
                 <Bar dataKey="In Progress" stackId="a" fill="#d97706" />
-                <Bar dataKey="Not Yet" stackId="a" fill="#dc2626" />
-                <Bar dataKey="Pending" stackId="a" fill="#e5e7eb" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Delayed" stackId="a" fill="#dc2626" />
+                <Bar dataKey="Upcoming" stackId="a" fill="#e5e7eb" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -998,16 +1030,24 @@ export default function App() {
   const totalTasks = allTasks.length;
   const achievedCount = allTasks.filter((t) => t.status === "Achieved").length;
   const inProgressCount = allTasks.filter((t) => t.status === "Working on").length;
-  const notYetCount = allTasks.filter((t) => t.status === "Not yet").length;
-  const pendingCount = allTasks.filter((t) => t.status === "Pending").length;
+  const delayedCount = allTasks.filter((t) => t.status === "Delayed").length;
+  const upcomingCount = allTasks.filter((t) => t.status === "Upcoming").length;
   const overallPct = totalTasks === 0 ? 0 : Math.round((achievedCount / totalTasks) * 100);
 
-  const chartData = sprints.map((sprint) => {
-    const { achieved, inProgress, total } = getSprintProgress(sprint);
-    const notYet = sprint.tasks.filter((t) => t.status === "Not yet").length;
-    const pending = total - achieved - inProgress - notYet;
-    return { name: `Wk ${sprint.week}`, fullName: sprint.title, Achieved: achieved, "In Progress": inProgress, "Not Yet": notYet, Pending: pending };
-  });
+const chartData = sprints.map((sprint) => {
+  const { achieved, inProgress, total } = getSprintProgress(sprint);
+  const delayed = sprint.tasks.filter((t) => t.status === "Delayed").length;
+  const upcoming = total - achieved - inProgress - delayed;
+
+  return {
+    name: `Wk ${sprint.week}`,
+    fullName: sprint.title,
+    Achieved: achieved,
+    "In Progress": inProgress,
+    Delayed: delayed,
+    Upcoming: upcoming,
+  };
+});
 
   return (
     <div className="min-h-screen bg-background" style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -1021,7 +1061,9 @@ export default function App() {
               </div>
               <div>
                 <h1 className="text-base font-semibold text-foreground">Chatbot Project Cockpit</h1>
-                <p className="text-xs text-muted-foreground font-mono">Nombre del Proyecto</p>
+                <p className="text-xs text-muted-foreground font-mono">
+                  {selectedProject?.name || "Select Project"}
+                </p>
               </div>
             </div>
           </div>
@@ -1147,8 +1189,8 @@ export default function App() {
             {[
               { label: "Completed", value: achievedCount, color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0" },
               { label: "In Progress", value: inProgressCount, color: "#d97706", bg: "#fffbeb", border: "#fde68a" },
-              { label: "Blocked / Behind", value: notYetCount, color: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
-              { label: "Upcoming", value: pendingCount, color: "#9ca3af", bg: "#f9fafb", border: "#e5e7eb" },
+              { label: "Blocked/Delayed", value: delayedCount, color: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
+              { label: "Upcoming", value: upcomingCount, color: "#9ca3af", bg: "#f9fafb", border: "#e5e7eb" },
             ].map((stat) => (
               <div key={stat.label} className="rounded-2xl p-5 border" style={{ backgroundColor: stat.bg, borderColor: stat.border }}>
                 <div className="flex items-end justify-between">
@@ -1173,7 +1215,7 @@ export default function App() {
                 <p className="text-xs text-muted-foreground font-mono mt-0.5">Task distribution by week</p>
               </div>
               <div className="flex items-center gap-4 text-xs font-mono">
-                {[{ label: "Achieved", color: "#16a34a" }, { label: "In Progress", color: "#d97706" }, { label: "Not Yet", color: "#dc2626" }, { label: "Upcoming", color: "#e5e7eb" }].map((l) => (
+                {[{ label: "Achieved", color: "#16a34a" }, { label: "In Progress", color: "#d97706" }, { label: "Delayed", color: "#dc2626" }, { label: "Upcoming", color: "#e5e7eb" }].map((l) => (
                   <div key={l.label} className="flex items-center gap-1.5">
                     <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: l.color }} />
                     <span className="text-muted-foreground">{l.label}</span>
@@ -1189,8 +1231,8 @@ export default function App() {
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: "#f5f5f5", radius: 4 }} />
                 <Bar dataKey="Achieved" stackId="a" fill="#16a34a" />
                 <Bar dataKey="In Progress" stackId="a" fill="#d97706" />
-                <Bar dataKey="Not Yet" stackId="a" fill="#dc2626" />
-                <Bar dataKey="Pending" stackId="a" fill="#e5e7eb" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="Delayed" stackId="a" fill="#dc2626" />
+                <Bar dataKey="Upcoming" stackId="a" fill="#e5e7eb" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
