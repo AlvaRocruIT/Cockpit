@@ -1020,41 +1020,8 @@ export default function App() {
                 <span className="text-white text-xs font-mono font-bold">AI</span>
               </div>
               <div>
-                <h1 className="text-base font-semibold text-foreground">Conversational AI Platform</h1>
-                <p className="text-xs text-muted-foreground font-mono">5-Week Development Roadmap</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              {/* Project selector */}
-              <div>
-                <div className="mt-2">
-                  <ProjectSelector selected={selectedProject} onChange={setSelectedProject} />
-                </div>
-              </div>
-              {/* Tab nav */}
-              <div className="flex items-center gap-1 p-1 rounded-xl border border-border bg-secondary">
-                <button
-                  onClick={() => setView("dashboard")}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
-                  style={view === "dashboard" ? { backgroundColor: "#111", color: "#fff" } : { color: "#888" }}
-                >
-                  <LayoutDashboard size={12} />Dashboard
-                </button>
-                <button
-                  onClick={() => setView("email")}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
-                  style={view === "email" ? { backgroundColor: "#111", color: "#fff" } : { color: "#888" }}
-                >
-                  <Mail size={12} />Email Update
-                </button>
-              </div>
-              {/* Overall progress */}
-              <div className="flex items-center gap-3">
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-foreground font-mono">{overallPct}%</p>
-                  <p className="text-xs text-muted-foreground">Overall</p>
-                </div>
-                <ProgressRing pct={overallPct} size={44} stroke={4} color="#16a34a" />
+                <h1 className="text-base font-semibold text-foreground">Chatbot Project Cockpit</h1>
+                <p className="text-xs text-muted-foreground font-mono">Nombre del Proyecto</p>
               </div>
             </div>
           </div>
@@ -1075,31 +1042,95 @@ export default function App() {
 
         {/* ── Action bar ── */}
           <div className="border-t border-border py-2.5 flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => {
-              const link = document.createElement("a");
-              link.href = "/templates/cockpit_template.xlsx";
-              link.download = "cockpit_template.xlsx";
-              document.body.appendChild(link);
-              link.click();
-             document.body.removeChild(link);
-        }}
-              
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground bg-white hover:border-foreground/25 hover:text-foreground transition-all"
-            >
-              <Download size={12} />
-              Download Template
-            </button>
+            {/* ZONE B · Project selector */}
+      <div className="flex-shrink-0">
+        <ProjectSelector selected={selectedProject} onChange={setSelectedProject} />
+      </div>
 
-            <button
-              onClick={() => {
-                document.getElementById("project-import")?.click();
-              }}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground bg-white hover:border-foreground/25 hover:text-foreground transition-all"
-            >
-              <Upload size={12} />
-              Import Project Data
-            </button>
+      <div className="flex-1" />
+
+      {/* ZONE C · View toggle */}
+      <div className="flex items-center gap-1 p-1 rounded-xl border border-border bg-secondary flex-shrink-0">
+        <button
+          onClick={() => setView("dashboard")}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+          style={view === "dashboard" ? { backgroundColor: "#111", color: "#fff" } : { color: "#888" }}
+        >
+          <LayoutDashboard size={11} />
+          <span className="hidden sm:inline">Dashboard</span>
+        </button>
+
+        <button
+          onClick={() => setView("email")}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+          style={view === "email" ? { backgroundColor: "#111", color: "#fff" } : { color: "#888" }}
+        >
+          <Mail size={11} />
+          <span className="hidden sm:inline">Email Update</span>
+        </button>
+      </div>
+
+      <div className="w-px self-stretch py-3 flex-shrink-0">
+        <div className="w-full h-full bg-border" />
+      </div>
+
+      {/* Hidden import input */}
+      <input
+        id="project-import"
+        type="file"
+        accept=".xlsx"
+        hidden
+        onChange={async (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          setSelectedFile(file.name);
+          await handleFileUpload(file);
+        }}
+      />
+
+      {/* ZONE D · Secondary actions */}
+      <div className="flex items-center gap-1.5 flex-shrink-0">
+        <button
+          onClick={() => {
+            const link = document.createElement("a");
+            link.href = "/templates/cockpit_template.xlsx";
+            link.download = "cockpit_template.xlsx";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground bg-white hover:border-foreground/25 hover:text-foreground transition-all"
+          title="Download Template"
+        >
+          <Download size={11} />
+          <span className="hidden lg:inline">Template</span>
+        </button>
+
+        <button
+          onClick={() => {
+            document.getElementById("project-import")?.click();
+          }}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground bg-white hover:border-foreground/25 hover:text-foreground transition-all"
+          title="Import Project Data"
+        >
+          <Upload size={11} />
+          <span className="hidden lg:inline">Import</span>
+        </button>
+      </div>
+
+      <div className="w-px self-stretch py-3 flex-shrink-0">
+        <div className="w-full h-full bg-border" />
+      </div>
+            <div className="flex items-center gap-4">
+              {/* Overall progress */}
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-foreground font-mono">{overallPct}%</p>
+                  <p className="text-xs text-muted-foreground">Overall</p>
+                </div>
+                <ProgressRing pct={overallPct} size={44} stroke={4} color="#16a34a" />
+              </div>
+            </div>
           </div>
       </header>
       {selectedFile && (
