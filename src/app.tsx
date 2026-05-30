@@ -227,7 +227,7 @@ function rowsToSprints(rows: RawTemplateRow[]): Sprint[] {
 
 // ─── Project mock data ────────────────────────────────────────────────────────
 
-type ProjectStatus = "active" | "paused" | "completed";
+type ProjectCondition = "active" | "paused" | "cancelled" | "completed";
 
 interface Project {
   id: string;
@@ -235,136 +235,318 @@ interface Project {
   client: string;
   color: string;
   initials: string;
-  status: ProjectStatus;
+  condition: ProjectCondition;
   week: number;
   totalWeeks: number;
 }
 
-const MOCK_PROJECTS: Project[] = [
-  { id: "p1", name: "Conversational AI Platform", client: "Luke Hartmann", color: "#111111", initials: "LH", status: "active",    week: 3, totalWeeks: 5 },
-  { id: "p2", name: "E-Commerce Chatbot",         client: "Sofía Martínez", color: "#6366f1", initials: "SM", status: "active",    week: 4, totalWeeks: 6 },
-  { id: "p3", name: "Internal HR Assistant",      client: "Apex Corp",      color: "#0891b2", initials: "AC", status: "paused",    week: 1, totalWeeks: 4 },
-  { id: "p4", name: "Knowledge Base Agent",       client: "DataSync GmbH",  color: "#16a34a", initials: "DG", status: "active",    week: 3, totalWeeks: 5 },
-  { id: "p5", name: "Support Automation",         client: "NovaTech Inc.",   color: "#d97706", initials: "NT", status: "completed", week: 5, totalWeeks: 5 },
+const PROJECT_COLORS = [
+  "#111111",
+  "#6366f1",
+  "#0891b2",
+  "#16a34a",
+  "#d97706",
 ];
 
-const PROJECT_STATUS_STYLES = {
-  active:    { label: "Active",    color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0" },
-  paused:    { label: "Paused",    color: "#d97706", bg: "#fffbeb", border: "#fde68a" },
-  completed: { label: "Completed", color: "#6366f1", bg: "#f5f3ff", border: "#ddd6fe" },
+function getProjectInitials(projectName: string): string {
+  const words = projectName.trim().split(/\s+/).filter(Boolean);
+
+  if (words.length === 0) return "?";
+  if (words.length === 1) return words[0][0].toUpperCase();
+
+  return `${words[0][0]}${words[1][0]}`.toUpperCase();
+}
+
+function normalizeProjectCondition(value: unknown): ProjectCondition {
+  const condition = String(value ?? "").trim().toLowerCase();
+
+  if (condition === "active") return "active";
+  if (condition === "paused") return "paused";
+  if (condition === "cancelled" || condition === "canceled") return "cancelled";
+  if (condition === "completed") return "completed";
+
+  console.warn(
+    `Unknown project condition "${String(value)}". Using "active" as fallback.`
+  );
+
+  return "active";
+}
+
+function rowsToImportedProjects(rows: (string | number)[][]): Project[] {
+  const headerRowIndex = rows.findIndex((row) => {
+    const headers = row.map((cell) => String(cell ?? "").trim().toLowerCase());
+
+    return (
+      headers.includes("project name") &&
+      headers.includes("client") &&
+      headers.includes("condition") &&
+      headers.includes("week") &&
+      headers.includes("totalweeks")
+    );
+  });
+
+  if (headerRowIndex === -1) {
+    console.warn(
+      'Project metadata headers not found. Expected: "Project Name", "Client", "Condition", "Week", "TotalWeeks".'
+    );
+    return [];
+  }
+
+  const headers = rows[headerRowIndex].map((cell) =>
+    String(cell ?? "").trim().toLowerCase()
+  );
+
+  const projectNameIndex = headers.indexOf("project name");
+  const clientIndex = headers.indexOf("client");
+  const conditionIndex = headers.indexOf("condition");
+  const weekIndex = headers.indexOf("week");
+  const totalWeeksIndex = headers.indexOf("totalweeks");
+
+  const metadataRow = rows
+    .slice(headerRowIndex + 1)
+    .find((row) => String(row?.[projectNameIndex] ?? "").trim() !== "");
+
+  if (!metadataRow) {
+    console.warn('No project metadata row found below the "Project Name" header.');
+    return [];
+  }
+
+  const name =
+    String(metadataRow[projectNameIndex] ?? "").trim() || "Unnamed Project";
+
+  const client =
+    String(metadataRow[clientIndex] ?? "").trim() || "Unknown Client";
+
+  const parsedWeek = Number(metadataRow[weekIndex]);
+  const parsedTotalWeeks = Number(metadataRow[totalWeeksIndex]);
+
+  const totalWeeks =
+    Number.isFinite(parsedTotalWeeks) && parsedTotalWeeks > 0
+      ? parsedTotalWeeks
+      : 1;
+
+  const week =
+    Number.isFinite(parsedWeek) && parsedWeek > 0
+      ? Math.min(parsedWeek, totalWeeks)
+      : 1;
+
+  return [
+    {
+      id: "p1",
+      name,
+      client,
+      condition: normalizeProjectCondition(metadataRow[conditionIndex]),
+      week,
+      totalWeeks,
+      initials: getProjectInitials(name),
+      color: PROJECT_COLORS[0],
+    },
+  ];
+}
+
+const PROJECT_CONDITION_STYLES: Record<
+  ProjectCondition,
+  { label: string; color: string; bg: string; border: string }
+> = {
+  active: {
+    label: "Active",
+    color: "#16a34a",
+    bg: "#f0fdf4",
+    border: "#bbf7d0",
+  },
+  paused: {
+    label: "Paused",
+    color: "#d97706",
+    bg: "#fffbeb",
+    border: "#fde68a",
+  },
+  cancelled: {
+    label: "Cancelled",
+    color: "#dc2626",
+    bg: "#fef2f2",
+    border: "#fecaca",
+  },
+  completed: {
+    label: "Completed",
+    color: "#6366f1",
+    bg: "#f5f3ff",
+    border: "#ddd6fe",
+  },
 };
 
 // ─── ProjectSelector ──────────────────────────────────────────────────────────
 
-function ProjectSelector({ selected, onChange }: { selected: Project; onChange: (p: Project) => void }) {
+function ProjectSelector({
+  selected,
+  projects,
+  onChange,
+}: {
+  selected: Project | null;
+  projects: Project[];
+  onChange: (project: Project) => void;
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    function handleClick(event: MouseEvent) {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
     }
+
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const st = PROJECT_STATUS_STYLES[selected.status];
+  const selectedStyle = selected
+    ? PROJECT_CONDITION_STYLES[selected.condition]
+    : PROJECT_CONDITION_STYLES.active;
 
   return (
     <div ref={ref} className="relative">
       {/* Trigger */}
       <button
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-border bg-white hover:border-foreground/25 transition-all group"
-        style={{ minWidth: 0 }}
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-border bg-white hover:border-foreground/25 transition-all"
       >
-        {/* Avatar */}
         <div
           className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 text-white text-[10px] font-bold font-mono"
-          style={{ backgroundColor: selected.color }}
+          style={{ backgroundColor: selected?.color ?? "#111111" }}
         >
-          {selected.initials}
+          {selected?.initials ?? "?"}
         </div>
 
-        {/* Labels */}
         <div className="text-left hidden sm:block">
-          <p className="text-xs font-semibold text-foreground leading-none truncate max-w-[140px]">{selected.name}</p>
-          <p className="text-[10px] font-mono text-muted-foreground leading-none mt-0.5 truncate max-w-[140px]">{selected.client}</p>
+          <p className="text-xs font-semibold text-foreground leading-none truncate max-w-[140px]">
+            {selected?.name ?? "Select Project"}
+          </p>
+          <p className="text-[10px] font-mono text-muted-foreground leading-none mt-0.5 truncate max-w-[140px]">
+            {selected?.client ?? "Import Excel data"}
+          </p>
         </div>
 
-        {/* Status dot */}
-        <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: st.color }} />
+        <div
+          className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+          style={{ backgroundColor: selected ? selectedStyle.color : "#9ca3af" }}
+        />
 
-        <ChevronDown size={12} className="text-muted-foreground flex-shrink-0 transition-transform" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
+        <ChevronDown
+          size={12}
+          className="text-muted-foreground flex-shrink-0 transition-transform"
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+        />
       </button>
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute top-full left-0 mt-2 w-72 bg-[#f3f3f3] rounded-2xl border border-[#e2e2e2] shadow-xl z-50 overflow-hidden">
-          {/* Dropdown header */}
-          <div className="px-4 py-3 border-b border-border" style={{ backgroundColor: "#fafafa" }}>
-            <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">Projects</p>
+        <div className="absolute top-full left-0 mt-2 w-72 bg-white rounded-2xl border border-border shadow-xl z-50 overflow-hidden">
+          <div className="px-4 py-3 border-b border-border bg-[#fafafa]">
+            <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">
+              Projects
+            </p>
           </div>
 
-          {/* Project list */}
           <div className="py-1.5 max-h-72 overflow-y-auto">
-            {MOCK_PROJECTS.map((project) => {
-              const pst = PROJECT_STATUS_STYLES[project.status];
-              const isSelected = project.id === selected.id;
-              const progressPct = Math.round((project.week / project.totalWeeks) * 100);
-              return (
-                <button
-                  key={project.id}
-                  onClick={() => { onChange(project); setOpen(false); }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-secondary/60"
-                  style={{ backgroundColor: isSelected ? "#f5f5f5" : undefined }}
-                >
-                  {/* Avatar */}
-                  <div className="absolute top-full left-0 mt-2 w-72 bg-[#f3f3f3] rounded-2xl border border-[#e2e2e2] shadow-xl z-50 overflow-hidden">
-                    {project.initials}
-                  </div>
+            {projects.length === 0 ? (
+              <p className="px-4 py-3 text-xs font-mono text-muted-foreground">
+                Import Excel data to load a project
+              </p>
+            ) : (
+              projects.map((project) => {
+                const conditionStyle =
+                  PROJECT_CONDITION_STYLES[project.condition];
 
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-semibold text-foreground truncate">{project.name}</p>
-                      <span
-                        className="flex-shrink-0 text-[10px] font-mono px-1.5 py-0.5 rounded-full"
-                        style={{ color: pst.color, backgroundColor: pst.bg, border: `1px solid ${pst.border}` }}
-                      >
-                        {pst.label}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Building2 size={9} className="text-muted-foreground flex-shrink-0" />
-                      <p className="text-[10px] font-mono text-muted-foreground truncate">{project.client}</p>
-                      <span className="text-[10px] font-mono text-muted-foreground flex-shrink-0 ml-auto">
-                        Wk {project.week}/{project.totalWeeks}
-                      </span>
-                    </div>
-                    {/* Mini progress bar */}
-                    <div className="mt-1.5 h-0.5 w-full rounded-full bg-muted overflow-hidden">
-                      <div className="h-full rounded-full" style={{ width: `${progressPct}%`, backgroundColor: project.color }} />
-                    </div>
-                  </div>
+                const isSelected = project.id === selected?.id;
 
-                  {/* Selected check */}
-                  {isSelected && (
-                    <div className="flex-shrink-0 flex items-center gap-1">
-                      <span className="w-8 h-[2px] rounded-full" style={{ backgroundColor: project.color }} />
-                      <Check size={12} className="flex-shrink-0" style={{ color: "#16a34a" }} />
+                const progressPct =
+                  project.totalWeeks === 0
+                    ? 0
+                    : Math.round((project.week / project.totalWeeks) * 100);
+
+                return (
+                  <button
+                    key={project.id}
+                    type="button"
+                    onClick={() => {
+                      onChange(project);
+                      setOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-secondary/60"
+                    style={{
+                      backgroundColor: isSelected ? "#f5f5f5" : undefined,
+                    }}
+                  >
+                    <div
+                      className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-white text-xs font-bold font-mono"
+                      style={{ backgroundColor: project.color }}
+                    >
+                      {project.initials}
                     </div>
-                  )}
-                </button>
-              );
-            })}
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-xs font-semibold text-foreground truncate">
+                          {project.name}
+                        </p>
+
+                        <span
+                          className="flex-shrink-0 text-[10px] font-mono px-1.5 py-0.5 rounded-full"
+                          style={{
+                            color: conditionStyle.color,
+                            backgroundColor: conditionStyle.bg,
+                            border: `1px solid ${conditionStyle.border}`,
+                          }}
+                        >
+                          {conditionStyle.label}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 mt-1">
+                        <Building2
+                          size={9}
+                          className="text-muted-foreground flex-shrink-0"
+                        />
+
+                        <p className="text-[10px] font-mono text-muted-foreground truncate">
+                          {project.client}
+                        </p>
+
+                        <span className="text-[10px] font-mono text-muted-foreground flex-shrink-0 ml-auto">
+                          Wk {project.week}/{project.totalWeeks}
+                        </span>
+                      </div>
+
+                      <div className="mt-1.5 h-0.5 w-full rounded-full bg-muted overflow-hidden">
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${progressPct}%`,
+                            backgroundColor: project.color,
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {isSelected && (
+                      <Check
+                        size={12}
+                        className="flex-shrink-0"
+                        style={{ color: "#16a34a" }}
+                      />
+                    )}
+                  </button>
+                );
+              })
+            )}
           </div>
 
-          {/* Footer hint */}
-          <div className="px-4 py-2.5 border-t border-border" style={{ backgroundColor: "#fafafa" }}>
+          <div className="px-4 py-2.5 border-t border-border bg-[#fafafa]">
             <p className="text-[10px] font-mono text-muted-foreground">
               <FolderKanban size={9} className="inline mr-1" />
-              {MOCK_PROJECTS.length} projects · Supabase-ready
+              {projects.length} {projects.length === 1 ? "project" : "projects"} ·
+              Supabase-ready
             </p>
           </div>
         </div>
@@ -1001,7 +1183,8 @@ export default function App() {
   const [sprints, setSprints] = useState<Sprint[]>([]);
   const [view, setView] = useState<View>("dashboard");
   const [selectedFile, setSelectedFile] = useState("");
-  const [selectedProject, setSelectedProject] = useState<Project>(MOCK_PROJECTS[0]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [feedbackModal, setFeedbackModal] = useState<{ taskId: string; taskName: string; existing?: string } | null>(null);
 
   const handleSaveFeedback = (taskId: string, feedback: string) => {
@@ -1024,6 +1207,12 @@ export default function App() {
 
   const parsed = rowsToSprintsFromSheetRows(jsonRows);
   setSprints(parsed);
+
+  
+const importedProjects = rowsToImportedProjects(jsonRows);
+
+setProjects(importedProjects);
+setSelectedProject(importedProjects[0] ?? null);
 };
   
   const allTasks = sprints.flatMap((s) => s.tasks);
@@ -1034,20 +1223,12 @@ export default function App() {
   const upcomingCount = allTasks.filter((t) => t.status === "Upcoming").length;
   const overallPct = totalTasks === 0 ? 0 : Math.round((achievedCount / totalTasks) * 100);
 
-const chartData = sprints.map((sprint) => {
-  const { achieved, inProgress, total } = getSprintProgress(sprint);
-  const delayed = sprint.tasks.filter((t) => t.status === "Delayed").length;
-  const upcoming = total - achieved - inProgress - delayed;
-
-  return {
-    name: `Wk ${sprint.week}`,
-    fullName: sprint.title,
-    Achieved: achieved,
-    "In Progress": inProgress,
-    Delayed: delayed,
-    Upcoming: upcoming,
-  };
-});
+  const chartData = sprints.map((sprint) => {
+    const { achieved, inProgress, total } = getSprintProgress(sprint);
+    const delayed = sprint.tasks.filter((t) => t.status === "Delayed").length;
+    const upcoming = total - achieved - inProgress - delayed;
+    return { name: `Wk ${sprint.week}`, fullName: sprint.title, Achieved: achieved, "In Progress": inProgress, "Delayed": delayed, "Upcoming": upcoming };
+  });
 
   return (
     <div className="min-h-screen bg-background" style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -1086,7 +1267,11 @@ const chartData = sprints.map((sprint) => {
           <div className="border-t border-border py-2.5 flex items-center gap-2 flex-wrap">
             {/* ZONE B · Project selector */}
       <div className="flex-shrink-0">
-        <ProjectSelector selected={selectedProject} onChange={setSelectedProject} />
+        <ProjectSelector
+          selected={selectedProject}
+          projects={projects}
+          onChange={setSelectedProject}
+        />
       </div>
 
       <div className="flex-1" />
