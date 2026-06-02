@@ -25,7 +25,6 @@ class ProjectRequest(BaseModel):
     week: int = Field(ge=1)
     total_weeks: int = Field(ge=1)
 
-
 @app.get("/")
 def root() -> dict[str, str]:
     return {"message": "Cockpit backend is running"}
