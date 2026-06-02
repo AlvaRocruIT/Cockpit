@@ -147,34 +147,65 @@ function rowsToSprintsFromSheet(json: Record<string, unknown>[]): Sprint[] {
 function rowsToSprintsFromSheetRows(rows: (string | number)[][]): Sprint[] {
   const sprintMap = new Map<string, Sprint>();
 
-  // Header is expected at Excel row 6 => index 5
-  for (let i = 6; i < rows.length; i++) {
-    const r = rows[i] ?? [];
-    const week = Number(String(r[0] ?? "").trim());
-    const milestone = String(r[1] ?? "").trim();
-    const task = String(r[2] ?? "").trim();
-    const description = String(r[3] ?? "").trim();
-    const status = normalizeStatus(r[4]);
-    const feedback = String(r[5] ?? "").trim();
-    const retry = ["true", "yes", "1"].includes(String(r[6] ?? "").trim().toLowerCase());
-    const weeklyProgress = toDisplayPercent(r[7]);
-    const overallProgress = toDisplayPercent(r[8]);
+  let currentWeek: number | null = null;
+  let currentMilestone = "";
 
-    if (!Number.isFinite(week) || week <= 0 || !milestone || !task) continue;
+  // Header is expected at Excel row 2 => index 1.
+  // Data rows begin at index 2.
+  for (let i = 2; i < rows.length; i++) {
+    const row = rows[i] ?? [];
 
-    const key = `${week}__${milestone}`;
+    const weekCell = String(row[0] ?? "").trim();
+    const milestoneCell = String(row[1] ?? "").trim();
+    const task = String(row[2] ?? "").trim();
+
+    // If Week or Milestone is written only once, reuse it for following task rows.
+    if (weekCell !== "") {
+      const parsedWeek = Number(weekCell);
+
+      if (Number.isFinite(parsedWeek) && parsedWeek > 0) {
+        currentWeek = parsedWeek;
+      }
+    }
+
+    if (milestoneCell !== "") {
+      currentMilestone = milestoneCell;
+    }
+
+    // Ignore empty separator rows and malformed rows.
+    if (currentWeek === null || !currentMilestone || !task) continue;
+
+    const description = String(row[3] ?? "").trim();
+    const status = normalizeStatus(row[4]);
+    const feedback = String(row[5] ?? "").trim();
+
+    const retryRequired = ["true", "yes", "1"].includes(
+      String(row[6] ?? "").trim().toLowerCase()
+    );
+
+    const weeklyProgress = toDisplayPercent(row[7]);
+    const overallProgress = toDisplayPercent(row[8]);
+
+    const key = `${currentWeek}__${currentMilestone}`;
+
     if (!sprintMap.has(key)) {
-      sprintMap.set(key, { id: sprintMap.size + 1, week, title: milestone, tasks: [] });
+      sprintMap.set(key, {
+        id: sprintMap.size + 1,
+        week: currentWeek,
+        title: currentMilestone,
+        tasks: [],
+      });
     }
 
     const sprint = sprintMap.get(key)!;
+
     sprint.tasks.push({
       id: `${sprint.id}-${sprint.tasks.length + 1}`,
       name: task,
       description,
       status,
       feedback: feedback || undefined,
-      retryRequired: retry,
+      retryRequired,
       weeklyProgress,
       overallProgress,
     });
@@ -248,8 +279,8 @@ const PROJECT_COLORS = [
   "#d97706",
 ];
 
-function getProjectInitials(projectName: string): string {
-  const words = projectName.trim().split(/\s+/).filter(Boolean);
+function getClientInitials(ClientName: string): string {
+  const words = ClientName.trim().split(/\s+/).filter(Boolean);
 
   if (words.length === 0) return "?";
   if (words.length === 1) return words[0][0].toUpperCase();
@@ -338,7 +369,7 @@ function rowsToImportedProjects(rows: (string | number)[][]): Project[] {
       condition: normalizeProjectCondition(metadataRow[conditionIndex]),
       week,
       totalWeeks,
-      initials: getProjectInitials(name),
+      initials: getClientInitials(client),
       color: PROJECT_COLORS[0],
     },
   ];
@@ -1221,7 +1252,24 @@ setSelectedProject(importedProjects[0] ?? null);
   const inProgressCount = allTasks.filter((t) => t.status === "Working on").length;
   const delayedCount = allTasks.filter((t) => t.status === "Delayed").length;
   const upcomingCount = allTasks.filter((t) => t.status === "Upcoming").length;
-  const overallPct = totalTasks === 0 ? 0 : Math.round((achievedCount / totalTasks) * 100);
+  const overallPct =
+  sprints.length === 0
+    ? 0
+    : Math.round(
+        sprints.reduce((sum, sprint) => {
+          const totalTasksInMilestone = sprint.tasks.length;
+
+          if (totalTasksInMilestone === 0) return sum;
+
+          const achievedTasksInMilestone = sprint.tasks.filter(
+            (task) => task.status === "Achieved"
+          ).length;
+
+          return sum + achievedTasksInMilestone / totalTasksInMilestone;
+        }, 0) /
+          sprints.length *
+          100
+      );
 
   const chartData = sprints.map((sprint) => {
     const { achieved, inProgress, total } = getSprintProgress(sprint);
