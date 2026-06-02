@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -30,6 +30,8 @@ import {
   ChevronRight,
   Download,
   Upload,
+  Building2,
+  FolderKanban,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 
@@ -291,7 +293,7 @@ function ProjectSelector({ selected, onChange }: { selected: Project; onChange: 
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute top-full left-0 mt-2 w-72 bg-white rounded-2xl border border-border shadow-xl z-50 overflow-hidden">
+        <div className="absolute top-full left-0 mt-2 w-72 bg-[#f6f6f6] rounded-2xl border border-border shadow-xl z-50 overflow-hidden">
           {/* Dropdown header */}
           <div className="px-4 py-3 border-b border-border" style={{ backgroundColor: "#fafafa" }}>
             <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">Projects</p>
@@ -307,8 +309,8 @@ function ProjectSelector({ selected, onChange }: { selected: Project; onChange: 
                 <button
                   key={project.id}
                   onClick={() => { onChange(project); setOpen(false); }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-secondary/60"
-                  style={{ backgroundColor: isSelected ? "#f5f5f5" : undefined }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-white/70 rounded-none"
+                  style={{ backgroundColor: isSelected ? "#ffffff" : undefined }}
                 >
                   {/* Avatar */}
                   <div
@@ -343,7 +345,12 @@ function ProjectSelector({ selected, onChange }: { selected: Project; onChange: 
                   </div>
 
                   {/* Selected check */}
-                  {isSelected && <Check size={12} className="flex-shrink-0" style={{ color: "#16a34a" }} />}
+                  {isSelected && (
+                    <div className="flex-shrink-0 flex items-center gap-1">
+                      <span className="w-5 h-[2px] rounded-full" style={{ backgroundColor: project.color }} />
+                      <Check size={12} className="flex-shrink-0" style={{ color: "#16a34a" }} />
+                    </div>
+                  )}
                 </button>
               );
             })}
@@ -965,6 +972,7 @@ export default function App() {
   const [sprints, setSprints] = useState<Sprint[]>([]);
   const [view, setView] = useState<View>("dashboard");
   const [selectedFile, setSelectedFile] = useState("");
+  const [selectedProject, setSelectedProject] = useState<Project>(MOCK_PROJECTS[0]);
   const [feedbackModal, setFeedbackModal] = useState<{ taskId: string; taskName: string; existing?: string } | null>(null);
 
   const handleSaveFeedback = (taskId: string, feedback: string) => {
@@ -1015,9 +1023,10 @@ export default function App() {
                 <span className="text-white text-xs font-mono font-bold">AI</span>
               </div>
               <div>
-                <h1 className="text-base font-semibold text-foreground">Conversational AI Platform</h1>
-                <p className="text-xs text-muted-foreground font-mono">5-Week Development Roadmap</p>
+                <h1 className="text-base font-semibold text-foreground">{selectedProject.name}</h1>
+                <p className="text-xs text-muted-foreground font-mono">{selectedProject.client} · {selectedProject.totalWeeks}-Week Development Roadmap</p>
               </div>
+              <ProjectSelector selected={selectedProject} onChange={setSelectedProject} />
             </div>
             <div className="flex items-center gap-4">
               {/* Tab nav */}
