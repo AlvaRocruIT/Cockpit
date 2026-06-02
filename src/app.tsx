@@ -1298,19 +1298,6 @@ setSelectedProject(importedProjects[0] ?? null);
           </div>
         </div>
 
-         <input
-            id="project-import"
-            type="file"
-            accept=".xlsx"
-            hidden
-            onChange={async (e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-            setSelectedFile(file.name);
-            await handleFileUpload(file);
-          }}
-          />
-
         {/* ── Action bar ── */}
           <div className="border-t border-border py-2.5 flex items-center gap-2 flex-wrap">
             {/* ZONE B · Project selector */}
@@ -1368,7 +1355,7 @@ setSelectedProject(importedProjects[0] ?? null);
         <button
           onClick={() => {
             const link = document.createElement("a");
-            link.href = "/templates/cockpit_template.xlsx";
+            link.href = `${import.meta.env.BASE_URL}templates/cockpit_template.xlsx`;
             link.download = "cockpit_template.xlsx";
             document.body.appendChild(link);
             link.click();
