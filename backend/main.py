@@ -1,11 +1,9 @@
 import os
 from typing import Literal
-
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from supabase import create_client
 
-import os
       
 app = FastAPI(
     title="Cockpit Backend",
