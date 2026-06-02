@@ -4,7 +4,18 @@ from typing import Literal
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from supabase import create_client
+from dotenv import load_dotenv
 
+load_dotenv()
+
+print("URL:", os.getenv("SUPABASE_URL"))
+print("KEY:", os.getenv("SUPABASE_KEY"))
+
+import os
+
+print("PWD:", os.getcwd())
+print("ENV EXISTS:", os.path.exists(".env"))
+      
 app = FastAPI(
     title="Cockpit Backend",
     version="0.1.0",
@@ -19,7 +30,7 @@ supabase = create_client(
 )
 
 class ProjectRequest(BaseModel):
-    name: str = Field(min_length=1)
+    project: str = Field(min_length=1)
     client: str = Field(min_length=1)
     condition: Literal["active", "paused", "cancelled", "completed"]
     week: int = Field(ge=1)
@@ -36,12 +47,23 @@ def health() -> dict[str, str]:
 
 @app.get("/test-db")
 def test_db():
-    data = supabase.table("Projects_table").select("*").limit(1).execute()
-    return data.data
+    try:
+        data = supabase.table("Projects_table").select("*").limit(1).execute()
+        return {"data": data.data}
+    except Exception as e:
+        return {"error": str(e)}
 
 @app.post("/projects")
-def receive_project(project: ProjectRequest) -> dict[str, object]:
-    return {
-        "message": "Project received successfully",
-        "project": project.model_dump(),
-    }
+def receive_project(project: ProjectRequest):
+    try:
+        data = supabase.table("Projects_table").insert(
+            project.model_dump()
+        ).execute()
+
+        return {
+            "message": "Project saved successfully",
+            "data": data.data,
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
