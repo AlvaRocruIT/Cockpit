@@ -1244,6 +1244,24 @@ const importedProjects = rowsToImportedProjects(jsonRows);
 setProjects(importedProjects);
 setSelectedProject(importedProjects[0] ?? null);
 };
+
+  const firstProject = importedProjects[0];
+
+if (firstProject) {
+  await fetch("https://YOUR-RENDER-SERVICE.onrender.com/projects", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      project: firstProject.name,
+      client: firstProject.client,
+      condition: firstProject.condition,
+      week: firstProject.week,
+      total_weeks: firstProject.totalWeeks,
+    }),
+  });
+}
   
   const allTasks = sprints.flatMap((s) => s.tasks);
   const totalTasks = allTasks.length;
