@@ -71,7 +71,6 @@ interface Sprint {
   retryRequired?: boolean | string;
 };
 
-
 function normalizeStatus(value: unknown): TaskStatus {
   const v = String(value ?? "").trim().toLowerCase();
 
