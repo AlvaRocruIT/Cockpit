@@ -1248,7 +1248,7 @@ setSelectedProject(importedProjects[0] ?? null);
   const firstProject = importedProjects[0];
 
 if (firstProject) {
-  await fetch("https://YOUR-RENDER-SERVICE.onrender.com/projects", {
+  await fetch("https://https://cockpit-hjwq.onrender.com/projects", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
