@@ -1354,7 +1354,7 @@ setSelectedProject(importedProjects[0] ?? null);
         <button
           onClick={() => {
             const link = document.createElement("a");
-            link.href = "/templates/cockpit_template.xlsx";
+            link.href = `${import.meta.env.BASE_URL}templates/cockpit_template.xlsx`;
             link.download = "cockpit_template.xlsx";
             document.body.appendChild(link);
             link.click();
