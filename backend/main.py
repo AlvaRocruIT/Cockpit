@@ -39,14 +39,6 @@ def root() -> dict[str, str]:
 def health() -> dict[str, str]:
     return {"status": "ok"}
 
-@app.get("/test-db")
-def test_db():
-    try:
-        data = supabase.table("Projects_table").select("*").limit(1).execute()
-        return {"data": data.data}
-    except Exception as e:
-        return {"error": str(e)}
-
 @app.post("/projects")
 def receive_project(project: ProjectRequest):
     try:
