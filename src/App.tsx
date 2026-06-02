@@ -1254,11 +1254,11 @@ if (firstProject) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      project: firstProject.name,
-      client: firstProject.client,
-      condition: firstProject.condition,
-      week: firstProject.week,
-      total_weeks: firstProject.totalWeeks,
+      project: Project.name,
+      client: Project.client,
+      condition: Project.condition,
+      week: Project.week,
+      total_weeks: Project.totalWeeks,
     }),
   });
 }
