@@ -4,7 +4,7 @@ import './styles/index.css'
 import './styles/fonts.css'
 import './styles/theme.css'
 import './styles/tailwind.css'
-import App from './App'
+import app from './app'
 
 const root = document.getElementById('root')
 
