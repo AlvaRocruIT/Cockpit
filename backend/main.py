@@ -12,9 +12,6 @@ print("URL:", os.getenv("SUPABASE_URL"))
 print("KEY:", os.getenv("SUPABASE_KEY"))
 
 import os
-
-print("PWD:", os.getcwd())
-print("ENV EXISTS:", os.path.exists(".env"))
       
 app = FastAPI(
     title="Cockpit Backend",
