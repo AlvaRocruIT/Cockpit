@@ -1263,10 +1263,36 @@ setSelectedProject(mappedProjects[0] ?? null);
 
       const data = await response.json();
 
-      console.log(
-      "Project status loaded:",
-      JSON.stringify(data, null, 2)
-    );
+const milestoneMap = new Map();
+
+for (const row of data.records ?? []) {
+  if (!milestoneMap.has(row.milestone)) {
+    milestoneMap.set(row.milestone, {
+      id: milestoneMap.size + 1,
+      week: milestoneMap.size + 1,
+      title: row.milestone,
+      tasks: [],
+    });
+  }
+
+  milestoneMap.get(row.milestone).tasks.push({
+    id: row.id,
+    name: row.task,
+    description: "",
+    status: row.status,
+    feedback: row.feedback ?? undefined,
+    retryRequired: row.retry_required ?? false,
+    weeklyProgress: row.status === "Achieved" ? 100 : 0,
+    overallProgress: row.status === "Achieved" ? 100 : 0,
+  });
+}
+
+const reconstructedSprints = Array.from(milestoneMap.values());
+
+console.log("Reconstructed sprints:", reconstructedSprints);
+
+setSprints(reconstructedSprints);
+    
     } catch (error) {
       console.error("Could not load project status:", error);
     }
