@@ -1261,25 +1261,15 @@ setSelectedProject(mappedProjects[0] ?? null);
     );
   };
 
-  const handleFileUpload = async (file: File) => {
-  const ab = await file.arrayBuffer();
-  const wb = XLSX.read(ab, { type: "array" });
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  const jsonRows = XLSX.utils.sheet_to_json<(string | number)[]>(ws, {
-    header: 1,
-    defval: "",
-  });
-
   const parsed = rowsToSprintsFromSheetRows(jsonRows);
   setSprints(parsed);
 
-  
 const importedProjects = rowsToImportedProjects(jsonRows);
 
 setProjects(importedProjects);
 setSelectedProject(importedProjects[0] ?? null);
 
-    const handleFileUpload = async (file: File) => {
+  const handleFileUpload = async (file: File) => {
   const ab = await file.arrayBuffer();
   const wb = XLSX.read(ab, { type: "array" });
   const ws = wb.Sheets[wb.SheetNames[0]];
@@ -1330,7 +1320,6 @@ setSelectedProject(importedProjects[0] ?? null);
   } catch (error) {
     console.error("Project could not be saved to backend:", error);
   }
-};
 };
   
   const allTasks = sprints.flatMap((s) => s.tasks);
