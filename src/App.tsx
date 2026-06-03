@@ -1316,6 +1316,32 @@ setSelectedProject(mappedProjects[0] ?? null);
 
     const result = await response.json();
     console.log("Project saved to backend:", result);
+
+    for (const sprint of parsed) {
+  for (const task of sprint.tasks) {
+    await fetch(
+      "https://....onrender.com/project-status",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          milestone: sprint.title,
+          task: task.name,
+          status: task.status,
+          feedback: null,
+          retry_required: task.retryRequired ?? false,
+          client: firstProject.client,
+          project: firstProject.name,
+        }),
+      }
+    );
+  }
+}
+
+console.log("Project status records saved");
+    
   } catch (error) {
     console.error("Project could not be saved to backend:", error);
   }
