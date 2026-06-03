@@ -1299,6 +1299,7 @@ setSelectedProject(importedProjects[0] ?? null);
 
   const firstProject = importedProjects[0];
 
+  console.log("Imported projects:", importedProjects);
   console.log("First project:", firstProject);
       
   if (!firstProject) {
