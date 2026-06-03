@@ -133,3 +133,21 @@ def receive_project_status(item: ProjectStatusRequest):
 
     except Exception as e:
         return {"error": str(e)}
+
+@app.get("/project-status/{project}")
+def get_project_status(project: str):
+    try:
+        data = (
+            supabase
+            .table("Project_status")
+            .select("*")
+            .eq("project", project)
+            .execute()
+        )
+
+        return {
+            "records": data.data
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
