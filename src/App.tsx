@@ -1320,7 +1320,7 @@ setSelectedProject(mappedProjects[0] ?? null);
     for (const sprint of parsed) {
   for (const task of sprint.tasks) {
     await fetch(
-      "https://....onrender.com/project-status",
+      "https://cockpit-hjwq.onrender.com/project-status",
       {
         method: "POST",
         headers: {
