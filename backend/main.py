@@ -15,7 +15,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "https://TU-FRONTEND.onrender.com",
+        "https://alvarocruit.github.io",
+        "https://cockpit-hjwq.onrender.com",
     ],
     allow_credentials=True,
     allow_methods=["*"],
