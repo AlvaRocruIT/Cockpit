@@ -1238,6 +1238,8 @@ const mappedProjects: Project[] = (data.projects ?? []).map((p: any, index: numb
   color: PROJECT_COLORS[index % PROJECT_COLORS.length],
 }));
 
+console.log("Loaded projects:", mappedProjects);
+    
 setProjects(mappedProjects);
 setSelectedProject(mappedProjects[0] ?? null);
     
