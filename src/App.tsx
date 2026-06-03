@@ -1366,6 +1366,8 @@ setSprints(reconstructedSprints);
     const result = await response.json();
     console.log("Project saved to backend:", result);
 
+    console.log("Entering Project_status loop");
+    
     for (const sprint of parsed) {
   for (const task of sprint.tasks) {
     await fetch(
@@ -1395,6 +1397,8 @@ console.log("Project status records saved");
     console.error("Project could not be saved to backend:", error);
   }
 };
+  
+  console.log("Finished Project_status loop");
   
   const allTasks = sprints.flatMap((s) => s.tasks);
   const totalTasks = allTasks.length;
