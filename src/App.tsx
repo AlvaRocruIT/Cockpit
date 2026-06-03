@@ -1289,9 +1289,9 @@ for (const row of data.records ?? []) {
 
 const reconstructedSprints = Array.from(milestoneMap.values());
 
-console.log("Records count:", data.records?.length);
-console.log("Reconstructed sprints:", reconstructedSprints);
-console.log("Reached setSprints");
+console.log("[DEBUG] Records count:", data.records?.length);
+console.log("[DEBUG] Reconstructed sprints:", reconstructedSprints);
+console.log("[DEBUG] Reached setSprints");
       
 setSprints(reconstructedSprints);
     
@@ -1328,14 +1328,14 @@ setSprints(reconstructedSprints);
 
   const importedProjects = rowsToImportedProjects(jsonRows);
 
-  console.log("Imported projects:", importedProjects);
+  console.log("[DEBUG] Imported projects:", importedProjects);
 
   setProjects(importedProjects);
   setSelectedProject(importedProjects[0] ?? null);
 
   const firstProject = importedProjects[0];
 
-  console.log("First project:", firstProject);
+  console.log("[DEBUG] First project:", firstProject);
 
   if (!firstProject) {
     return;
@@ -1366,9 +1366,9 @@ setSprints(reconstructedSprints);
     }
 
     const result = await response.json();
-    console.log("Project saved to backend:", result);
+    console.log("[DEBUG] Project saved to backend:", result);
 
-    console.log("Entering Project_status loop");
+    console.log("[DEBUG] Entering Project_status loop");
     
     for (const sprint of parsed) {
    for (const task of sprint.tasks) {
@@ -1393,11 +1393,11 @@ setSprints(reconstructedSprints);
 
 const result = await response.json();
 
-console.log("Project status response:", result);
+console.log("[DEBUG] Project status response:", result);
   }
 }
-console.log("Finished Project_status loop");
-console.log("Project status records saved");
+console.log("[DEBUG] Finished Project_status loop");
+console.log("[DEBUG] Project status records saved");
     
   } catch (error) {
     console.error("Project could not be saved to backend:", error);
