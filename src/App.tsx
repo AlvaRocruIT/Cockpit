@@ -1279,6 +1279,11 @@ const importedProjects = rowsToImportedProjects(jsonRows);
 setProjects(importedProjects);
 setSelectedProject(importedProjects[0] ?? null);
 
+    const handleFileUpload = async (file: File) => {
+  const ab = await file.arrayBuffer();
+  const wb = XLSX.read(ab, { type: "array" });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+
   const jsonRows = XLSX.utils.sheet_to_json<(string | number)[]>(ws, {
     header: 1,
     defval: "",
