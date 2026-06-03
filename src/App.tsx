@@ -1369,25 +1369,29 @@ setSprints(reconstructedSprints);
     console.log("Entering Project_status loop");
     
     for (const sprint of parsed) {
-  for (const task of sprint.tasks) {
-    await fetch(
-      "https://cockpit-hjwq.onrender.com/project-status",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          milestone: sprint.title,
-          task: task.name,
-          status: task.status,
-          feedback: null,
-          retry_required: task.retryRequired ?? false,
-          client: firstProject.client,
-          project: firstProject.name,
-        }),
-      }
-    );
+   for (const task of sprint.tasks) {
+   const response = await fetch(
+  "https://cockpit-hjwq.onrender.com/project-status",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      milestone: sprint.title,
+      task: task.name,
+      status: task.status,
+      feedback: null,
+      retry_required: task.retryRequired ?? false,
+      client: firstProject.client,
+      project: firstProject.name,
+    }),
+  }
+);
+
+const result = await response.json();
+
+console.log("Project status response:", result);
   }
 }
 console.log("Finished Project_status loop");
