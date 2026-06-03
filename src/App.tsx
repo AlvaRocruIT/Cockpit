@@ -1390,15 +1390,13 @@ setSprints(reconstructedSprints);
     );
   }
 }
-
+console.log("Finished Project_status loop");
 console.log("Project status records saved");
     
   } catch (error) {
     console.error("Project could not be saved to backend:", error);
   }
 };
-  
-  console.log("Finished Project_status loop");
   
   const allTasks = sprints.flatMap((s) => s.tasks);
   const totalTasks = allTasks.length;
