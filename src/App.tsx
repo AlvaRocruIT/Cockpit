@@ -1272,6 +1272,7 @@ setSelectedProject(mappedProjects[0] ?? null);
   });
 
   const parsed = rowsToSprintsFromSheetRows(jsonRows);
+  console.log(JSON.stringify(parsed[0], null, 2));
   setSprints(parsed);
 
   const importedProjects = rowsToImportedProjects(jsonRows);
