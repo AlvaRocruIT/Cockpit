@@ -1217,6 +1217,23 @@ export default function App() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [feedbackModal, setFeedbackModal] = useState<{ taskId: string; taskName: string; existing?: string } | null>(null);
 
+  const loadSavedProjects = async () => {
+  try {
+    const response = await fetch("https://cockpit-hjwq.onrender.com/projects");
+
+    if (!response.ok) {
+      throw new Error(`Failed to load projects: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    setProjects(data.projects ?? []);
+    setSelectedProject(data.projects?.[0] ?? null);
+  } catch (error) {
+    console.error("Could not load saved projects:", error);
+  }
+};
+  
   const handleSaveFeedback = (taskId: string, feedback: string) => {
     setSprints((prev) =>
       prev.map((sprint) => ({
