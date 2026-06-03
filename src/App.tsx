@@ -1251,6 +1251,26 @@ setSelectedProject(mappedProjects[0] ?? null);
   useEffect(() => {
     loadSavedProjects();
   }, []);
+
+  useEffect(() => {
+  if (!selectedProject) return;
+
+  const loadProjectStatus = async () => {
+    try {
+      const response = await fetch(
+        `https://....onrender.com/project-status/${encodeURIComponent(selectedProject.name)}`
+      );
+
+      const data = await response.json();
+
+      console.log("Project status loaded:", data);
+    } catch (error) {
+      console.error("Could not load project status:", error);
+    }
+  };
+
+  loadProjectStatus();
+}, [selectedProject]);
   
   const handleSaveFeedback = (taskId: string, feedback: string) => {
     setSprints((prev) =>
