@@ -119,7 +119,10 @@ def receive_project_status(item: ProjectStatusRequest):
         data = (
             supabase
             .table("Project_status")
-            .insert(item.model_dump())
+            .upsert(
+                item.model_dump(),
+                on_conflict="client,project,milestone,task"
+            )
             .execute()
         )
 
