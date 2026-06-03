@@ -1289,8 +1289,10 @@ for (const row of data.records ?? []) {
 
 const reconstructedSprints = Array.from(milestoneMap.values());
 
+console.log("Records count:", data.records?.length);
 console.log("Reconstructed sprints:", reconstructedSprints);
-
+console.log("Reached setSprints");
+      
 setSprints(reconstructedSprints);
     
     } catch (error) {
