@@ -1263,7 +1263,10 @@ setSelectedProject(mappedProjects[0] ?? null);
 
       const data = await response.json();
 
-      console.log("Project status loaded:", data);
+      console.log(
+      "Project status loaded:",
+      JSON.stringify(data, null, 2)
+    );
     } catch (error) {
       console.error("Could not load project status:", error);
     }
