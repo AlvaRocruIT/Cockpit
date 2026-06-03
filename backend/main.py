@@ -3,11 +3,23 @@ from typing import Literal
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from supabase import create_client
+from fastapi.middleware.cors import CORSMiddleware
 
       
 app = FastAPI(
     title="Cockpit Backend",
     version="0.1.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "https://TU-FRONTEND.onrender.com",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
