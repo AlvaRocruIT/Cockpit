@@ -1258,7 +1258,7 @@ setSelectedProject(mappedProjects[0] ?? null);
   const loadProjectStatus = async () => {
     try {
       const response = await fetch(
-        `https://....onrender.com/project-status/${encodeURIComponent(selectedProject.name)}`
+        `https://cockpit-hjwq.onrender.com/project-status/${encodeURIComponent(selectedProject.name)}`
       );
 
       const data = await response.json();
