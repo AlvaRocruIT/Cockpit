@@ -29,11 +29,30 @@ class ProjectRequest(BaseModel):
 def root() -> dict[str, str]:
     return {"message": "Cockpit backend is running"}
 
-
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
 
+@app.get("/projects")
+def get_projects():
+    try:
+        data = (
+            supabase
+            .table("Projects_table")
+            .select("id, client, project, condition, week, total_weeks, created_at, updated_at")
+            .order("updated_at", desc=True)
+            .execute()
+        )
+
+        return {
+            "projects": data.data
+        }
+
+    except Exception as e:
+        return {
+            "error": str(e)
+        }
+          
 @app.post("/projects")
 def receive_project(project: ProjectRequest):
     try:
