@@ -38,6 +38,15 @@ class ProjectRequest(BaseModel):
     week: int = Field(ge=1)
     total_weeks: int = Field(ge=1)
 
+class ProjectStatusRequest(BaseModel):
+    milestone: str
+    task: str
+    status: str
+    feedback: str | None = None
+    retry_required: bool = False
+    client: str
+    project: str
+      
 @app.get("/")
 def root() -> dict[str, str]:
     return {"message": "Cockpit backend is running"}
@@ -98,6 +107,24 @@ def receive_project(project: ProjectRequest):
 
         return {
             "message": "Project saved successfully",
+            "data": data.data,
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.post("/project-status")
+def receive_project_status(item: ProjectStatusRequest):
+    try:
+        data = (
+            supabase
+            .table("Project_status")
+            .insert(item.model_dump())
+            .execute()
+        )
+
+        return {
+            "message": "Project status saved successfully",
             "data": data.data,
         }
 
