@@ -39,8 +39,8 @@ def get_projects():
         data = (
             supabase
             .table("Projects_table")
-            .select("id, client, project, condition, week, total_weeks, created_at, updated_at")
-            .order("updated_at", desc=True)
+            .select("id, client, project, condition, week, total_weeks, created_at")
+            .order("created_at", desc=True)
             .execute()
         )
 
