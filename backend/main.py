@@ -69,14 +69,32 @@ def get_projects():
 @app.post("/projects")
 def receive_project(project: ProjectRequest):
     try:
-        data = supabase.table("Projects_table").insert(
-            project.model_dump()
-        ).execute()
+    existing_client = (
+        supabase
+        .table("clients")
+        .select("id")
+        .eq("client_name", project.client)
+        .limit(1)
+        .execute()
+    )
 
-        return {
-            "message": "Project saved successfully",
-            "data": data.data,
-        }
+    if not existing_client.data:
+        supabase.table("clients").insert({
+            "client_name": project.client,
+            "email": f"{project.client.lower().replace(' ', '_')}@pending.local"
+        }).execute()
 
-    except Exception as e:
-        return {"error": str(e)}
+    data = (
+        supabase
+        .table("Projects_table")
+        .insert(project.model_dump())
+        .execute()
+    )
+
+    return {
+        "message": "Project saved successfully",
+        "data": data.data,
+    }
+
+except Exception as e:
+    return {"error": str(e)}
