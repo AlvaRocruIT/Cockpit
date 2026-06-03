@@ -1230,9 +1230,13 @@ export default function App() {
     setProjects(data.projects ?? []);
     setSelectedProject(data.projects?.[0] ?? null);
   } catch (error) {
-    console.error("Could not load saved projects:", error);
+     console.error("Could not load saved projects:", error);
   }
 };
+
+  useEffect(() => {
+    loadSavedProjects();
+  }, []);
   
   const handleSaveFeedback = (taskId: string, feedback: string) => {
     setSprints((prev) =>
