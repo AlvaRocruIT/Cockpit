@@ -1372,6 +1372,9 @@ setSprints(reconstructedSprints);
     
     for (const sprint of parsed) {
    for (const task of sprint.tasks) {
+     
+  console.log("[DEBUG]", task.name, task.status);
+     
    const response = await fetch(
   "https://cockpit-hjwq.onrender.com/project-status",
   {
