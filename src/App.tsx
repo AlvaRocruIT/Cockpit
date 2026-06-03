@@ -1227,8 +1227,20 @@ export default function App() {
 
     const data = await response.json();
 
-    setProjects(data.projects ?? []);
-    setSelectedProject(data.projects?.[0] ?? null);
+const mappedProjects: Project[] = (data.projects ?? []).map((p: any, index: number) => ({
+  id: p.id,
+  name: p.project,
+  client: p.client,
+  condition: p.condition,
+  week: p.week,
+  totalWeeks: p.total_weeks,
+  initials: getClientInitials(p.client),
+  color: PROJECT_COLORS[index % PROJECT_COLORS.length],
+}));
+
+setProjects(mappedProjects);
+setSelectedProject(mappedProjects[0] ?? null);
+    
   } catch (error) {
      console.error("Could not load saved projects:", error);
   }
