@@ -1498,6 +1498,10 @@ console.log("[DEBUG] Project status records saved");
     return { name: `Wk ${sprint.week}`, fullName: sprint.title, Achieved: achieved, "In Progress": inProgress, "Delayed": delayed, "Upcoming": upcoming };
   });
 
+  if (!currentUser) {
+    return <AuthPage onAuth={(user) => setCurrentUser(user)} />;
+  }
+  
   return (
     <div className="min-h-screen bg-background" style={{ fontFamily: "'Inter', sans-serif" }}>
       {/* ── Header ── */}
