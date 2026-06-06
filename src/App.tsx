@@ -1219,8 +1219,7 @@ export default function App() {
 
   const loadSavedProjects = async () => {
   try {
-    const response = await fetch
-      `${import.meta.env.VITE_API_URL}/projects")};
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/projects`);
 
     if (!response.ok) {
       throw new Error(`Failed to load projects: ${response.status}`);
@@ -1259,7 +1258,7 @@ setSelectedProject(mappedProjects[0] ?? null);
   const loadProjectStatus = async () => {
     try {
       const response = await fetch(
-  `${import.meta.env.VITE_API_URL}/project-status/${encodeURIComponent(selectedProject.name)}`
+      `${import.meta.env.VITE_API_URL}/project-status/${encodeURIComponent(selectedProject.name)}`
       );
       const data = await response.json();
 
@@ -1377,7 +1376,7 @@ setSprints(reconstructedSprints);
   console.log("[DEBUG]", task.name, task.status);
      
    const response = await fetch(
-  `${import.meta.env.VITE_API_URL}/project-status,
+  `${import.meta.env.VITE_API_URL}/project-status`,
   );
   {
     method: "POST",
