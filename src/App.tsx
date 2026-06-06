@@ -38,6 +38,7 @@ import {
   Lock,
 } from "lucide-react";
 import * as XLSX from "xlsx";
+import AuthPage, { AuthUser, MOCK_USERS } from "./AuthPage";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
