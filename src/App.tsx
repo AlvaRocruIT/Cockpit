@@ -97,52 +97,6 @@ function toDisplayPercent(value: unknown): number {
   return n <= 1 ? Number((n * 100).toFixed(2)) : Number(n.toFixed(2));
 }
 
-function rowsToSprintsFromSheet(json: Record<string, unknown>[]): Sprint[] {
-  const sprintMap = new Map<string, Sprint>();
-
-  for (const row of json) {
-    const weekRaw = pick(row, ["Week", "week"]);
-    const milestoneRaw = pick(row, ["Milestone", "milestone"]);
-    const taskRaw = pick(row, ["Task", "task"]);
-    const descRaw = pick(row, ["Task description", "Task Description", "description"]);
-    const statusRaw = pick(row, ["Status", "status"]);
-    const feedbackRaw = pick(row, ["Client feedback", "Client Feedback", "feedback"]);
-    const retryRaw = pick(row, ["Retry required", "Retry required?", "retryRequired"]);
-    const weeklyRaw = pick(row, ["Weekly  progress", "Weekly progress", "Weekly Progress%", "Weekly Progress"]);
-    const overallRaw = pick(row, ["Overall progress ", "Overall progress", "Overall progress %", "Overall Progress %"]);
-    const week = Number(String(weekRaw).trim());
-    const milestone = String(milestoneRaw).trim();
-    const task = String(taskRaw).trim();
-
-    // skip non-task rows (meta/header/milestone title-only rows)
-    if (!Number.isFinite(week) || week <= 0 || !milestone || !task) continue;
-
-    const key = `${week}__${milestone}`;
-    if (!sprintMap.has(key)) {
-      sprintMap.set(key, {
-        id: sprintMap.size + 1,
-        week,
-        title: milestone,
-        tasks: [],
-      });
-    }
-
-    const sprint = sprintMap.get(key)!;
-    sprint.tasks.push({
-      id: `${sprint.id}-${sprint.tasks.length + 1}`,
-      name: task,
-      description: String(descRaw ?? "").trim(),
-      status: normalizeStatus(statusRaw),
-      feedback: String(feedbackRaw ?? "").trim() || undefined,
-      retryRequired: ["true", "yes", "1"].includes(String(retryRaw).trim().toLowerCase()),
-      weeklyProgress: toDisplayPercent(weeklyRaw),
-      overallProgress: toDisplayPercent(overallRaw),
-    });
-  }
-
-  return [...sprintMap.values()].sort((a, b) => a.week - b.week);
-}
-
 function rowsToSprintsFromSheetRows(rows: (string | number)[][]): Sprint[] {
   const sprintMap = new Map<string, Sprint>();
 
@@ -216,43 +170,6 @@ function rowsToSprintsFromSheetRows(rows: (string | number)[][]): Sprint[] {
 function toBool(value: unknown): boolean {
   const v = String(value ?? "").trim().toLowerCase();
   return v === "true" || v === "yes" || v === "1";
-}
-
-function rowsToSprints(rows: RawTemplateRow[]): Sprint[] {
-  const map = new Map<string, Sprint>();
-
-  rows.forEach((row, idx) => {
-    const week = Number(row.week);
-    const milestoneTitle = String(row.milestone ?? "").trim();
-    const taskName = String(row.task ?? "").trim();
-
-    // skip non-task rows (meta/header/empty)
-    if (!Number.isFinite(week) || week <= 0 || !milestoneTitle || !taskName) return;
-
-    const sprintKey = `${week}__${milestoneTitle}`;
-    if (!map.has(sprintKey)) {
-      map.set(sprintKey, {
-        id: map.size + 1,
-        week,
-        title: milestoneTitle,
-        tasks: [],
-      });
-    }
-  
-    const sprint = map.get(sprintKey)!;
-    sprint.tasks.push({
-      id: `${sprint.id}-${sprint.tasks.length + 1}`,
-      name: taskName,
-      description: String(row.description ?? "").trim(),
-      status: normalizeStatus(row.status),
-      feedback: String(row.feedback ?? "").trim() || undefined,
-      retryRequired: toBool(row.retryRequired),
-      weeklyProgress: 0,   // automate later
-      overallProgress: 0,  // automate later
-    });
-  });
-
-  return Array.from(map.values()).sort((a, b) => a.week - b.week);
 }
 
 // ─── Project mock data ────────────────────────────────────────────────────────
