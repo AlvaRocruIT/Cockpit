@@ -1282,6 +1282,7 @@ export default function App() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [feedbackModal, setFeedbackModal] = useState<{ taskId: string; taskName: string; existing?: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
 
   const loadSavedProjects = async () => {
   try {
