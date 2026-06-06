@@ -1259,7 +1259,6 @@ setSelectedProject(mappedProjects[0] ?? null);
     try {
       const response = await fetch(
       `${import.meta.env.VITE_API_URL}/project-status/${encodeURIComponent(selectedProject.name)}`
-      );
       const data = await response.json();
 
 const milestoneMap = new Map();
