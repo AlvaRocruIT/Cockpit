@@ -32,6 +32,10 @@ import {
   ChevronRight,
   Download,
   Upload,
+  ShieldCheck,
+  UserCircle,
+  LogOut,
+  Lock,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 
@@ -39,6 +43,14 @@ import * as XLSX from "xlsx";
 
 type TaskStatus = "Achieved" | "Working on" | "Delayed" | "Upcoming";
 type View = "dashboard" | "email";
+
+interface AuthUser {
+  name: string;
+  email: string;
+  role: "admin" | "client";
+  initials: string;
+  color: string;
+}
 
 interface Task {
   id: string;
@@ -333,6 +345,130 @@ const PROJECT_CONDITION_STYLES: Record<
     border: "#ddd6fe",
   },
 };
+
+// ─── UserMenu ────────────────────────────────────────────────────────────────
+
+function UserMenu({ user, onSignOut }: { user: AuthUser; onSignOut: () => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const isAdmin = user.role === "admin";
+  const roleStyle = isAdmin
+    ? { color: "#6366f1", bg: "#f5f3ff", border: "#ddd6fe" }
+    : { color: "#0891b2", bg: "#f0f9ff", border: "#bae6fd" };
+
+  return (
+    <div ref={ref} className="relative flex-shrink-0">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-2 px-2 py-1.5 rounded-xl border border-border bg-white hover:border-foreground/25 transition-all"
+      >
+        <div
+          className="w-6 h-6 rounded-lg flex items-center justify-center text-white text-[10px] font-bold font-mono flex-shrink-0"
+          style={{ backgroundColor: user.color }}
+        >
+          {user.initials}
+        </div>
+        <span className="text-xs font-medium text-foreground hidden sm:inline max-w-[100px] truncate">{user.name.split(" ")[0]}</span>
+        <ChevronDown size={11} className="text-muted-foreground flex-shrink-0" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }} />
+      </button>
+
+      {open && (
+        <div className="absolute top-full right-0 mt-2 w-64 bg-white rounded-2xl border border-border shadow-xl z-50 overflow-hidden">
+          {/* User info */}
+          <div className="px-4 py-4 border-b border-border" style={{ backgroundColor: "#fafafa" }}>
+            <div className="flex items-center gap-3">
+              <div
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold font-mono flex-shrink-0"
+                style={{ backgroundColor: user.color }}
+              >
+                {user.initials}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-foreground truncate">{user.name}</p>
+                <p className="text-[10px] font-mono text-muted-foreground truncate">{user.email}</p>
+              </div>
+            </div>
+            {/* Role badge */}
+            <div className="mt-3 flex items-center gap-1.5">
+              {isAdmin
+                ? <ShieldCheck size={11} style={{ color: roleStyle.color }} />
+                : <UserCircle size={11} style={{ color: roleStyle.color }} />
+              }
+              <span
+                className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full"
+                style={{ color: roleStyle.color, backgroundColor: roleStyle.bg, border: `1px solid ${roleStyle.border}` }}
+              >
+                {isAdmin ? "Administrator" : "Client"}
+              </span>
+              <span className="text-[10px] font-mono text-muted-foreground ml-auto">
+                {isAdmin ? "Full access" : "Read-only"}
+              </span>
+            </div>
+          </div>
+
+          {/* Access summary */}
+          <div className="px-4 py-3 border-b border-border space-y-1.5">
+            {[
+              { label: "View project dashboard",       granted: true },
+              { label: "Submit client feedback",        granted: true },
+              { label: "Manage milestones & tasks",     granted: isAdmin },
+              { label: "Access all projects",           granted: isAdmin },
+              { label: "Send email updates",            granted: isAdmin },
+              { label: "Import / export data",          granted: isAdmin },
+            ].map((item) => (
+              <div key={item.label} className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: item.granted ? "#f0fdf4" : "#f9fafb", border: `1px solid ${item.granted ? "#bbf7d0" : "#e5e7eb"}` }}>
+                  <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: item.granted ? "#16a34a" : "#d1d5db" }} />
+                </div>
+                <p className="text-[10px] font-mono" style={{ color: item.granted ? "#111" : "#aaa" }}>{item.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Sign out */}
+          <div className="p-2">
+            <button
+              onClick={() => { setOpen(false); onSignOut(); }}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+            >
+              <LogOut size={12} />
+              Sign out
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Unauthorized panel ───────────────────────────────────────────────────────
+
+function UnauthorizedPanel() {
+  return (
+    <div className="flex flex-col items-center justify-center py-32 text-center">
+      <div
+        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5"
+        style={{ backgroundColor: "#fef2f2", border: "1px solid #fecaca" }}
+      >
+        <Lock size={22} style={{ color: "#dc2626" }} strokeWidth={1.8} />
+      </div>
+      <p className="text-sm font-semibold text-foreground">Access Restricted</p>
+      <p className="text-xs text-muted-foreground mt-2 max-w-xs leading-relaxed">
+        This section is only available to administrators. Contact your project manager if you need access.
+      </p>
+    </div>
+  );
+}
+
 
 // ─── ProjectSelector ──────────────────────────────────────────────────────────
 
