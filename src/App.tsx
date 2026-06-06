@@ -1376,7 +1376,6 @@ setSprints(reconstructedSprints);
      
    const response = await fetch(
   `${import.meta.env.VITE_API_URL}/project-status`,
-  );
   {
     method: "POST",
     headers: {
