@@ -45,14 +45,6 @@ import AuthPage, { AuthUser, MOCK_USERS } from "./AuthPage";
 type TaskStatus = "Achieved" | "Working on" | "Delayed" | "Upcoming";
 type View = "dashboard" | "email";
 
-interface AuthUser {
-  name: string;
-  email: string;
-  role: "admin" | "client";
-  initials: string;
-  color: string;
-}
-
 interface Task {
   id: string;
   name: string;
