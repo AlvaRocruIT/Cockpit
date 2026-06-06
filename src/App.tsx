@@ -59,6 +59,19 @@ interface Sprint {
   currentWeek?: boolean;
 }
 
+const STATUS_COLORS = {
+  achieved: "#16a34a",
+  working: "#d97706",
+  delayed: "#dc2626",
+  upcoming: "#6b7280",
+};
+
+const STATUS_LABELS = {
+  achieved: "Achieved",
+  working: "Working on",
+  delayed: "Delayed",
+  upcoming: "Upcoming",
+};
 // ─── Data ────────────────────────────────────────────────────────────────────
 
   type RawTemplateRow = {
