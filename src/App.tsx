@@ -1346,7 +1346,7 @@ for (const row of data.records ?? []) {
   });
 }
 
-const reconstructedSprints = Array.from(milestoneMap.values());
+const reconstructedSprints = Array.from(milestoneMap.values()).sort((a, b) => a.week - b.week);
 
 console.log("[DEBUG] Records count:", data.records?.length);
 console.log("[DEBUG] Reconstructed sprints:", reconstructedSprints);
