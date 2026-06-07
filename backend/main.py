@@ -143,7 +143,7 @@ def get_project_status(project: str):
             .table("Project_status")
             .select("*")
             .eq("project", project)
-            .order("Task_order")
+            ..order("week")
             .execute()
         )
 
