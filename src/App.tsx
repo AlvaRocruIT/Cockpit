@@ -1449,6 +1449,7 @@ setSprints(reconstructedSprints);
       retry_required: task.retryRequired ?? false,
       client: firstProject.client,
       project: firstProject.name,
+      week: sprint.week,
     }),
   }
 );
