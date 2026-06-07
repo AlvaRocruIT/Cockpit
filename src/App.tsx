@@ -1445,7 +1445,7 @@ setSprints(reconstructedSprints);
       milestone: sprint.title,
       task: task.name,
       status: task.status,
-      feedback: null,
+      feedback: task.feedback ?? null,
       retry_required: task.retryRequired ?? false,
       client: firstProject.client,
       project: firstProject.name,
