@@ -1605,8 +1605,8 @@ console.log("[DEBUG] Project status records saved");
         </div>
       ) : (
         <div className="flex-1 flex justify-center">
-          <p className="text-sm font-semibold text-foreground truncate max-w-xs">
-            {selectedProject?.name ?? ""}
+          <p className="text-lg font-semibold text-foreground">
+            Dashboard
           </p>
         </div>
       )}
