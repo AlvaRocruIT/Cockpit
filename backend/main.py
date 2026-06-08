@@ -153,6 +153,7 @@ def receive_project_status(item: ProjectStatusRequest):
                 item.model_dump(),
                 on_conflict="client,project,milestone,task"
             )
+            .select()
             .execute()
         )
 
