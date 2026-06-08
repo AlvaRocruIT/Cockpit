@@ -1604,7 +1604,7 @@ console.log("[DEBUG] Project status records saved");
           )}
         </div>
       ) : (
-        <div className="flex-1 flex justify-center">
+        <div className="absolute left-1/2 -translate-x-1/2">
           <p className="text-lg font-semibold text-foreground">
             Dashboard
           </p>
