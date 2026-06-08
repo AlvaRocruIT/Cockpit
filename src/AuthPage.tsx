@@ -71,7 +71,7 @@ export default function AuthPage({ onAuth }: Props) {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = email.trim().toLowerCase();
     if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
@@ -80,9 +80,19 @@ export default function AuthPage({ onAuth }: Props) {
     }
     setError("");
     setStep("loading");
-    // Simulate network delay
-    setTimeout(() => setStep("sent"), 1200);
+   const { error } = await supabase.auth.signInWithOtp({
+    email: trimmed,
+    options: {
+      emailRedirectTo: "https://alvarocruit.github.io/Cockpit/",
+    },
+  });
+  if (error) {
+    setError(error.message);
+    setStep("idle");
+  } else {
+    setStep("sent");
   }
+}
 
   function handleMagicLink() {
     const trimmed = email.trim().toLowerCase();
