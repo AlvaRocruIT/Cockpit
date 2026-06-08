@@ -131,7 +131,7 @@ def receive_project(project: ProjectRequest):
         data = (
             supabase
             .table("Projects_table")
-            .upsert(project.model_dump())
+            .upsert(project.model_dump(), on_conflict="project")
             .execute()
         )
 
