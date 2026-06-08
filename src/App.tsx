@@ -1581,32 +1581,35 @@ console.log("[DEBUG] Project status records saved");
             
       <div className="flex-1" />
 
-      {/* ZONE C · View toggle */}
-      <div className="flex items-center gap-1 p-1 rounded-xl border border-border bg-secondary flex-shrink-0">
-        <button
-          onClick={() => setView("dashboard")}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
-          style={view === "dashboard" ? { backgroundColor: "#111", color: "#fff" } : { color: "#888" }}
-        >
-          <LayoutDashboard size={11} />
-          <span className="hidden sm:inline">Dashboard</span>
-        </button>
-        
-    {isAdmin && (
-        <button
-          onClick={() => setView("email")}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
-          style={view === "email" ? { backgroundColor: "#111", color: "#fff" } : { color: "#888" }}
-        >
-          <Mail size={11} />
-          <span className="hidden sm:inline">Email Update</span>
-        </button>
-    )}  
-      </div>
-
-      <div className="w-px self-stretch py-3 flex-shrink-0">
-        <div className="w-full h-full bg-border" />
-      </div>
+           {/* ZONE C · View toggle (admin) or Project title (client) */}
+      {isAdmin ? (
+        <div className="flex items-center gap-1 p-1 rounded-xl border border-border bg-secondary flex-shrink-0">
+          <button
+            onClick={() => setView("dashboard")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+            style={view === "dashboard" ? { backgroundColor: "#111", color: "#fff" } : { color: "#888" }}
+          >
+            <LayoutDashboard size={11} />
+            <span className="hidden sm:inline">Dashboard</span>
+          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setView("email")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+              style={view === "email" ? { backgroundColor: "#111", color: "#fff" } : { color: "#888" }}
+            >
+              <Mail size={11} />
+              <span className="hidden sm:inline">Email Update</span>
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="flex-1 flex justify-center">
+          <p className="text-sm font-semibold text-foreground truncate max-w-xs">
+            {selectedProject?.name ?? ""}
+          </p>
+        </div>
+      )}
 
       {/* Hidden import input */}
       <input
