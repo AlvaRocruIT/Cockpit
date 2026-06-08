@@ -1370,7 +1370,7 @@ for (const row of data.records ?? []) {
   if (!milestoneMap.has(row.milestone)) {
     milestoneMap.set(row.milestone, {
       id: milestoneMap.size + 1,
-      week: milestoneMap.size + 1,
+      week: row.milestone_order ?? milestoneMap.size + 1,
       title: row.milestone,
       tasks: [],
     });
