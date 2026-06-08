@@ -1,3 +1,10 @@
+import { createClient } from "@supabase/supabase-js";
+import AuthPage, { AuthUser, MOCK_USERS } from "./AuthPage";
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL ?? "",
+  import.meta.env.VITE_SUPABASE_ANON_KEY ?? ""
+);
+
 import { useEffect, useRef, useState } from "react";
 import {
   BarChart,
@@ -38,7 +45,7 @@ import {
   Lock,
 } from "lucide-react";
 import * as XLSX from "xlsx";
-import AuthPage, { AuthUser, MOCK_USERS } from "./AuthPage";
+
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -1276,6 +1283,40 @@ export default function App() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [feedbackModal, setFeedbackModal] = useState<{ taskId: string; taskName: string; existing?: string } | null>(null);
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+
+  useEffect(() => {
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    if (session?.user) {
+      const email = session.user.email ?? "";
+      const user = MOCK_USERS[email] ?? {
+        email,
+        name: email.split("@")[0],
+        role: "admin" as const,
+        initials: email.slice(0, 2).toUpperCase(),
+        color: "#111111",
+      };
+      setCurrentUser(user);
+    }
+  });
+
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    if (session?.user) {
+      const email = session.user.email ?? "";
+      const user = MOCK_USERS[email] ?? {
+        email,
+        name: email.split("@")[0],
+        role: "admin" as const,
+        initials: email.slice(0, 2).toUpperCase(),
+        color: "#111111",
+      };
+      setCurrentUser(user);
+    } else {
+      setCurrentUser(null);
+    }
+  });
+
+  return () => subscription.unsubscribe();
+}, []);
 
   const loadSavedProjects = async () => {
   try {
