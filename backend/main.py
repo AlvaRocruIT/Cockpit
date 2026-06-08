@@ -46,7 +46,8 @@ class ProjectStatusRequest(BaseModel):
     retry_required: bool = False
     client: str
     project: str
-    week: int = 0
+    milestone_order: int = 0
+    task_order: int = 0
       
 @app.get("/")
 def root() -> dict[str, str]:
