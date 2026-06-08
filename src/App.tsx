@@ -1491,8 +1491,8 @@ setSprints(reconstructedSprints);
       retry_required: task.retryRequired ?? false,
       client: firstProject.client,
       project: firstProject.name,
-      milestone_order: int = 0
-      task_order: int = 0
+      milestone_order: sprint.week,
+      task_order: sprint.tasks.indexOf(task) + 1,
     }),
   }
 );
