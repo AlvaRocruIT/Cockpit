@@ -1568,6 +1568,8 @@ console.log("[DEBUG] Project status records saved");
         {/* ── Action bar ── */}
           <div className="border-t border-border py-2.5 flex items-center gap-2 flex-wrap">
             {/* ZONE B · Project selector */}
+            
+    {isAdmin && (
       <div className="flex-shrink-0">
         <ProjectSelector
           selected={selectedProject}
@@ -1575,7 +1577,8 @@ console.log("[DEBUG] Project status records saved");
           onChange={setSelectedProject}
         />
       </div>
-
+   )}
+            
       <div className="flex-1" />
 
       {/* ZONE C · View toggle */}
@@ -1588,7 +1591,8 @@ console.log("[DEBUG] Project status records saved");
           <LayoutDashboard size={11} />
           <span className="hidden sm:inline">Dashboard</span>
         </button>
-
+        
+    {isAdmin && (
         <button
           onClick={() => setView("email")}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
@@ -1597,6 +1601,7 @@ console.log("[DEBUG] Project status records saved");
           <Mail size={11} />
           <span className="hidden sm:inline">Email Update</span>
         </button>
+    )}  
       </div>
 
       <div className="w-px self-stretch py-3 flex-shrink-0">
