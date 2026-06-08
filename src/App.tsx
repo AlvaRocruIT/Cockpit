@@ -125,58 +125,35 @@ function toDisplayPercent(value: unknown): number {
 function rowsToSprintsFromSheetRows(rows: (string | number)[][]): Sprint[] {
   const sprintMap = new Map<string, Sprint>();
 
-  let currentWeek: number | null = null;
-  let currentMilestone = "";
-
-  // Header is expected at Excel row 2 => index 1.
-  // Data rows begin at index 2.
-  for (let i = 2; i < rows.length; i++) {
+  // Row 0 = header, data starts at index 1
+  for (let i = 1; i < rows.length; i++) {
     const row = rows[i] ?? [];
 
-    const weekCell = String(row[0] ?? "").trim();
-    const milestoneCell = String(row[1] ?? "").trim();
-    const task = String(row[2] ?? "").trim();
+    const milestoneOrder = Number(row[0] ?? "");
+    const milestone = String(row[2] ?? "").trim();
+    const task = String(row[3] ?? "").trim();
 
-    // If Week or Milestone is written only once, reuse it for following task rows.
-    if (weekCell !== "") {
-      const parsedWeek = Number(weekCell);
+    if (!milestone || !task || !Number.isFinite(milestoneOrder) || milestoneOrder <= 0) continue;
 
-      if (Number.isFinite(parsedWeek) && parsedWeek > 0) {
-        currentWeek = parsedWeek;
-      }
-    }
+    const description = String(row[4] ?? "").trim();
+    const status = normalizeStatus(row[5]);
+    const feedback = String(row[6] ?? "").trim();
+    const retryRequired = ["true", "yes", "1"].includes(String(row[7] ?? "").trim().toLowerCase());
+    const weeklyProgress = toDisplayPercent(row[8]);
+    const overallProgress = toDisplayPercent(row[9]);
 
-    if (milestoneCell !== "") {
-      currentMilestone = milestoneCell;
-    }
-
-    // Ignore empty separator rows and malformed rows.
-    if (currentWeek === null || !currentMilestone || !task) continue;
-
-    const description = String(row[3] ?? "").trim();
-    const status = normalizeStatus(row[4]);
-    const feedback = String(row[5] ?? "").trim();
-
-    const retryRequired = ["true", "yes", "1"].includes(
-      String(row[6] ?? "").trim().toLowerCase()
-    );
-
-    const weeklyProgress = toDisplayPercent(row[7]);
-    const overallProgress = toDisplayPercent(row[8]);
-
-    const key = `${currentWeek}__${currentMilestone}`;
+    const key = `${milestoneOrder}__${milestone}`;
 
     if (!sprintMap.has(key)) {
       sprintMap.set(key, {
         id: sprintMap.size + 1,
-        week: currentWeek,
-        title: currentMilestone,
+        week: milestoneOrder,
+        title: milestone,
         tasks: [],
       });
     }
 
     const sprint = sprintMap.get(key)!;
-
     sprint.tasks.push({
       id: `${sprint.id}-${sprint.tasks.length + 1}`,
       name: task,
