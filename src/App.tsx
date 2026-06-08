@@ -1283,6 +1283,7 @@ export default function App() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [feedbackModal, setFeedbackModal] = useState<{ taskId: string; taskName: string; existing?: string } | null>(null);
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+  const isAdmin = currentUser?.role === "admin";
 
   useEffect(() => {
   supabase.auth.getSession().then(({ data: { session } }) => {
