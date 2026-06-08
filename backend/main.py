@@ -75,6 +75,34 @@ def get_projects():
         return {
             "error": str(e)
         }
+
+
+@app.get("/project-status/{project}")
+def get_project_status(project: str):
+    try:
+        data = (
+            supabase
+            .table("Project_status")
+            .select("*")
+            .eq("project", project)
+            .order("Task_order")
+            .execute()
+        )
+
+        return {
+            "records": data.data
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/communications/{project}/{task}")
+def get_communications(project: str, task: str):
+    try:
+        data = supabase.table("Communications_table").select("*").eq("project", project).eq("task", task).order("created_at").execute()
+        return {"messages": data.data}
+    except Exception as e:
+        return {"error": str(e)}
           
 @app.post("/projects")
 def receive_project(project: ProjectRequest):
@@ -135,21 +163,20 @@ def receive_project_status(item: ProjectStatusRequest):
     except Exception as e:
         return {"error": str(e)}
 
-@app.get("/project-status/{project}")
-def get_project_status(project: str):
+class CommunicationRequest(BaseModel):
+    type: str = "feedback"
+    message: str
+    email: str
+    client: str
+    project: str
+    task: str
+    sender_role: str
+
+@app.post("/communications")
+def post_communication(item: CommunicationRequest):
     try:
-        data = (
-            supabase
-            .table("Project_status")
-            .select("*")
-            .eq("project", project)
-            .order("Task_order")
-            .execute()
-        )
-
-        return {
-            "records": data.data
-        }
-
+        data = supabase.table("Communications_table").insert(item.model_dump()).execute()
+        return {"message": "Saved", "data": data.data}
     except Exception as e:
         return {"error": str(e)}
+
