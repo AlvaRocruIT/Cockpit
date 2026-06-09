@@ -27,10 +27,9 @@ export interface AuthUser {
   color: string;
 }
 
-// ─── Mock registry ────────────────────────────────────────────────────────────
+// ─── Mock registry and Demo accounts list──────────────────────────────────────
 //  -empty -
-// ─── Demo accounts list ────────────────────────────────────────────────────────
-//  -empty -
+
 // ─── AuthPage ─────────────────────────────────────────────────────────────────
 
 type AuthStep = "idle" | "loading" | "sent";
