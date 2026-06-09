@@ -733,55 +733,47 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 // ─── Dashboard components ─────────────────────────────────────────────────────
 
-function FeedbackModal({ taskName, onClose, currentUser, selectedProject }: {
-  taskName: string;
+function FeedbackModal({ taskName, project, client, currentUser, messages, onClose, onSent }: {
+  taskName: string; project: string; client: string;
+  currentUser: { email: string; role: string; name: string };
+  messages: { message: string; sender_role: string; created_at: string }[];
   onClose: () => void;
-  currentUser: AuthUser;
-  selectedProject: { name: string; client: string } | null;
+  onSent: (msg: { message: string; sender_role: string; created_at: string }) => void;
 }) {
-  const [messages, setMessages] = useState<{ id: string; message: string; sender_role: string; created_at: string }[]>([]);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!selectedProject) return;
-    fetch(`${import.meta.env.VITE_API_URL}/communications/${encodeURIComponent(selectedProject.name)}/${encodeURIComponent(taskName)}`)
-      .then((r) => r.json())
-      .then((data) => setMessages(data.messages ?? []));
-  }, [taskName, selectedProject]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  async function handleSend() {
-    if (!text.trim() || !selectedProject) return;
+  async function send() {
+    const trimmed = text.trim();
+    if (!trimmed || sending) return;
     setSending(true);
-    await fetch(`${import.meta.env.VITE_API_URL}/communications`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type: "feedback",
-        message: text.trim(),
-        email: currentUser.email,
-        client: selectedProject.client,
-        project: selectedProject.name,
-        task: taskName,
-        sender_role: currentUser.role,
-      }),
-    });
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/communications/${encodeURIComponent(selectedProject.name)}/${encodeURIComponent(taskName)}`);
-    const data = await res.json();
-    setMessages(data.messages ?? []);
-    setText("");
-    setSending(false);
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/communications`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "feedback",
+          message: trimmed,
+          email: currentUser.email,
+          client,
+          project,
+          task: taskName,
+          sender_role: currentUser.role,
+        }),
+      });
+      onSent({ message: trimmed, sender_role: currentUser.role, created_at: new Date().toISOString() });
+      setText("");
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.3)" }}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col" style={{ maxHeight: "80vh" }}>
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border flex-shrink-0">
           <div>
             <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-0.5">Feedback</p>
@@ -789,50 +781,37 @@ function FeedbackModal({ taskName, onClose, currentUser, selectedProject }: {
           </div>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted transition-colors"><X size={16} /></button>
         </div>
-
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {messages.length === 0 && (
-            <p className="text-xs font-mono text-muted-foreground text-center py-8">No messages yet. Start the conversation.</p>
+            <p className="text-xs text-muted-foreground text-center py-8">No messages yet.</p>
           )}
-          {messages.map((msg) => {
-            const isMe = msg.sender_role === currentUser.role;
+          {messages.map((m, i) => {
+            const isMe = m.sender_role === currentUser.role;
             return (
-              <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                <div
-                  className="max-w-[75%] px-3 py-2 rounded-xl text-sm"
+              <div key={i} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                <div className="max-w-[75%] px-3 py-2 rounded-2xl text-xs leading-relaxed"
                   style={isMe
-                    ? { backgroundColor: "#111111", color: "#ffffff" }
-                    : { backgroundColor: "#f5f5f5", color: "#111111", border: "1px solid rgba(0,0,0,0.08)" }
-                  }
-                >
-                  <p>{msg.message}</p>
-                  <p className="text-[10px] mt-1 opacity-50 font-mono">
-                    {msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
-                  </p>
+                    ? { backgroundColor: "#111111", color: "#fff" }
+                    : { backgroundColor: "#f1f5f9", color: "#111111" }}>
+                  {m.message}
                 </div>
               </div>
             );
           })}
           <div ref={bottomRef} />
         </div>
-
-        {/* Input */}
-        <div className="px-6 py-4 border-t border-border flex-shrink-0 flex gap-2">
+        <div className="flex items-center gap-2 px-4 py-3 border-t border-border flex-shrink-0">
           <input
             className="flex-1 rounded-xl border border-border bg-secondary px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/15"
-            placeholder="Type a message…"
+            placeholder="Type a message..."
             value={text}
             onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
             autoFocus
           />
-          <button
-            onClick={handleSend}
-            disabled={sending || !text.trim()}
-            className="px-4 py-2 rounded-xl bg-foreground text-white text-sm flex items-center gap-1.5 disabled:opacity-40 hover:opacity-80 transition-opacity"
-          >
-            <Send size={13} />
+          <button onClick={send} disabled={!text.trim() || sending}
+            className="p-2 rounded-xl bg-foreground text-white disabled:opacity-40 transition-opacity hover:opacity-80">
+            <Send size={14} />
           </button>
         </div>
       </div>
@@ -1336,7 +1315,8 @@ export default function App() {
   const [selectedFile, setSelectedFile] = useState("");
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [feedbackModal, setFeedbackModal] = useState<{ taskId: string; taskName: string; existing?: string } | null>(null);
+  const [feedbackModal, setFeedbackModal] = useState<{ taskId: string; taskName: string } | null>(null);
+  const [communications, setCommunications] = useState<Record<string, { message: string; sender_role: string; created_at: string }[]>>({});
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const isAdmin = currentUser?.role === "admin";
 
@@ -1456,7 +1436,24 @@ setSprints(reconstructedSprints);
     }
   };
 
-  loadProjectStatus();
+    loadProjectStatus();
+
+  const loadCommunications = async () => {
+    if (!selectedProject) return;
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/communications/${encodeURIComponent(selectedProject.name)}`);
+      const data = await res.json();
+      const grouped: Record<string, { message: string; sender_role: string; created_at: string }[]> = {};
+      for (const msg of data.messages ?? []) {
+        const key = msg.task;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(msg);
+      }
+      setCommunications(grouped);
+    } catch {}
+  };
+
+  loadCommunications();
 }, [selectedProject]);
   
   const handleSaveFeedback = (taskId: string, feedback: string) => {
