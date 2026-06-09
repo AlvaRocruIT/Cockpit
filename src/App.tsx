@@ -1817,7 +1817,7 @@ console.log("[DEBUG] Project status records saved");
 
       {/* Feedback modal */}
       {feedbackModal && (
-        <FeedbackModal taskId={feedbackModal.taskId} taskName={feedbackModal.taskName} existingFeedback={feedbackModal.existing} onSave={handleSaveFeedback} onClose={() => setFeedbackModal(null)} />
+        <FeedbackModal taskName={feedbackModal.taskName} onClose={() => setFeedbackModal(null)} currentUser={currentUser!} selectedProject={selectedProject} />
       )}
     </div>
   );
