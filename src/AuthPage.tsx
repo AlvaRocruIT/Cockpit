@@ -28,8 +28,34 @@ export interface AuthUser {
 }
 
 // ─── Mock registry and Demo accounts list──────────────────────────────────────
-//  -empty -
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? "";
 
+const DEMO_ACCOUNTS = [
+  { label: "Admin",               email: "alvaro@cockpit.app",   role: "admin"  as const, color: "#111111", name: "Álvaro",        initials: "AL" },
+  { label: "Client — AI Project", email: "luke@hartmann.com",    role: "client" as const, color: "#111111", name: "Luke Hartmann",  initials: "LH" },
+  { label: "Client — E-Commerce", email: "sofia@martinez.com",   role: "client" as const, color: "#6366f1", name: "Sofía Martínez", initials: "SM" },
+  { label: "Client — HR Tool",    email: "contact@apexcorp.com", role: "client" as const, color: "#0891b2", name: "Apex Corp",      initials: "AC" },
+];
+
+async function fetchProfile(email: string): Promise<AuthUser | null> {
+  const res = await fetch(`${BACKEND_URL}/profile/${encodeURIComponent(email)}`);
+  if (!res.ok) return null;
+  const { profile } = await res.json();
+  if (!profile) return null;
+  const name = profile.client_name ?? email.split("@")[0];
+  const words = name.trim().split(" ");
+  const initials = words.length >= 2
+    ? words[0][0].toUpperCase() + words[1][0].toUpperCase()
+    : name.slice(0, 2).toUpperCase();
+  return {
+    email: profile.email,
+    name,
+    role: profile.role ?? "client",
+    projectId: profile.project ?? undefined,
+    initials,
+    color: "#111111",
+  };
+}
 // ─── AuthPage ─────────────────────────────────────────────────────────────────
 
 type AuthStep = "idle" | "loading" | "sent";
