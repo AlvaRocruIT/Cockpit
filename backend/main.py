@@ -111,7 +111,24 @@ def get_all_communications(project: str):
         return {"messages": data.data}
     except Exception as e:
         return {"error": str(e)}
-          
+
+@app.get("/profile/{email}")
+def get_profile(email: str):
+    try:
+        data = (
+            supabase
+            .table("clients")
+            .select("email, client_name, role, project")
+            .eq("email", email)
+            .limit(1)
+            .execute()
+        )
+        if not data.data:
+            return {"error": "Profile not found"}
+        return {"profile": data.data[0]}
+    except Exception as e:
+        return {"error": str(e)}
+        
 @app.post("/projects")
 def receive_project(project: ProjectRequest):
     try:
