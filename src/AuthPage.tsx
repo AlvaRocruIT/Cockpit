@@ -248,46 +248,7 @@ export default function AuthPage({ onAuth }: Props) {
             Demo accounts
             <ChevronDown size={11} style={{ transform: demoOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }} />
           </button>
-
-          {demoOpen && (
-            <div className="absolute bottom-full mb-2 left-0 right-0 bg-white rounded-2xl border border-border shadow-xl overflow-hidden z-20">
-              <div className="px-4 py-3 border-b border-border" style={{ backgroundColor: "#fafafa" }}>
-                <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Click to sign in as</p>
-              </div>
-              <div className="py-1.5">
-                {DEMO_ACCOUNTS.map((account) => (
-                  <button
-                    key={account.email}
-                    onClick={() => handleDemoLogin(account.email)}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-secondary/60 transition-colors"
-                  >
-                    <div
-                      className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px] font-bold font-mono flex-shrink-0"
-                      style={{ backgroundColor: account.color }}
-                    >
-                      {MOCK_USERS[account.email]?.initials}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-foreground">{MOCK_USERS[account.email]?.name}</p>
-                      <p className="text-[10px] font-mono text-muted-foreground truncate">{account.email}</p>
-                    </div>
-                    <span
-                      className="flex-shrink-0 text-[10px] font-mono px-2 py-0.5 rounded-full"
-                      style={
-                        account.role === "admin"
-                          ? { color: "#6366f1", backgroundColor: "#f5f3ff", border: "1px solid #ddd6fe" }
-                          : { color: "#0891b2", backgroundColor: "#f0f9ff", border: "1px solid #bae6fd" }
-                      }
-                    >
-                      {account.role}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
-
       </div>
     </div>
   );
