@@ -30,14 +30,7 @@ export interface AuthUser {
 // ─── Mock registry ────────────────────────────────────────────────────────────
 //  -empty -
 // ─── Demo accounts list ────────────────────────────────────────────────────────
-
-const DEMO_ACCOUNTS = [
-  { label: "Admin",              email: "alvaro@cockpit.app",   role: "admin"  as const, color: "#111111" },
-  { label: "Client — AI Project",email: "luke@hartmann.com",    role: "client" as const, color: "#111111" },
-  { label: "Client — E-Commerce",email: "sofia@martinez.com",   role: "client" as const, color: "#6366f1" },
-  { label: "Client — HR Tool",   email: "contact@apexcorp.com", role: "client" as const, color: "#0891b2" },
-];
-
+//  -empty -
 // ─── AuthPage ─────────────────────────────────────────────────────────────────
 
 type AuthStep = "idle" | "loading" | "sent";
