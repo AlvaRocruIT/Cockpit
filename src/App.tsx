@@ -819,7 +819,12 @@ function FeedbackModal({ taskName, project, client, currentUser, messages, onClo
   );
 }
 
-function SprintCard({ sprint, onFeedback }: { sprint: Sprint; onFeedback: (taskId: string, taskName: string, existing?: string) => void }) {
+function SprintCard({ sprint, onFeedback, isAdmin, communications }: {
+  sprint: Sprint;
+  onFeedback: (taskName: string) => void;
+  isAdmin: boolean;
+  communications: Record<string, { sender_role: string }[]>;
+}) {
   const [expanded, setExpanded] = useState(sprint.currentWeek ?? sprint.week === 1);
   const { achieved, inProgress, total, pct } = getSprintProgress(sprint);
   const color = getSprintColor(sprint);
@@ -875,9 +880,20 @@ function SprintCard({ sprint, onFeedback }: { sprint: Sprint; onFeedback: (taskI
                         </div>
                       )}
                     </div>
-                    <button onClick={() => onFeedback(task.id, task.name, task.feedback)} className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:border-foreground/30 hover:text-foreground transition-all">
-                      <MessageSquare size={12} />{task.feedback ? "Edit" : "Feedback"}
-                    </button>
+                    {(() => {
+                      const msgs = communications[task.name] ?? [];
+                      const hasClientMsg = msgs.some(m => m.sender_role === "client");
+                      const lastSender = msgs.length > 0 ? msgs[msgs.length - 1].sender_role : null;
+                      const hasUnread = lastSender !== null && lastSender !== (isAdmin ? "admin" : "client");
+                      const showButton = !isAdmin || hasClientMsg;
+                      if (!showButton) return null;
+                      return (
+                        <button onClick={() => onFeedback(task.name)} className="relative flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:border-foreground/30 hover:text-foreground transition-all">
+                          {hasUnread && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500" />}
+                          <MessageSquare size={12} />Feedback
+                        </button>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
@@ -1788,7 +1804,7 @@ console.log("[DEBUG] Project status records saved");
           {/* Sprint cards */}
           <div className="space-y-4">
             {sprints.map((sprint) => (
-              <SprintCard key={sprint.id} sprint={sprint} onFeedback={(taskId, taskName, existing) => setFeedbackModal({ taskId, taskName, existing })} />
+              <SprintCard key={sprint.id} sprint={sprint} isAdmin={isAdmin} communications={communications} onFeedback={(taskName) => setFeedbackModal({ taskId: "", taskName })} />
             ))}
           </div>
 
@@ -1811,10 +1827,22 @@ console.log("[DEBUG] Project status records saved");
       {view === "email" && (
         <EmailTemplateView sprints={sprints} chartData={chartData} overallPct={overallPct} />
       )}
-
-      {/* Feedback modal */}
-      {feedbackModal && (
-        <FeedbackModal taskName={feedbackModal.taskName} onClose={() => setFeedbackModal(null)} currentUser={currentUser!} selectedProject={selectedProject} />
+        {/* Feedback modal */}
+        {feedbackModal && (
+          <FeedbackModal
+          taskName={feedbackModal.taskName}
+          project={selectedProject?.name ?? ""}
+          client={selectedProject?.client ?? ""}
+          currentUser={{ email: currentUser.email, role: currentUser.role, name: currentUser.name }}
+          messages={communications[feedbackModal.taskName] ?? []}
+          onClose={() => setFeedbackModal(null)}
+          onSent={(msg) => {
+            setCommunications(prev => ({
+              ...prev,
+              [feedbackModal.taskName]: [...(prev[feedbackModal.taskName] ?? []), msg],
+            }));
+          }}
+        />
       )}
     </div>
   );
