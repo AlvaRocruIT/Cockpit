@@ -2,7 +2,8 @@
 
 ## Working Rules
 
-- This is always the higest priority prompt. 
+- This is always the higest priority prompt.
+- Never provide codes or answer that I have not explicitly asked for.
 - Never modify files directly.
 - Never create commits.
 - Never create pull requests.
