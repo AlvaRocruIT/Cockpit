@@ -102,25 +102,22 @@ export default function AuthPage({ onAuth }: Props) {
   }
 }
 
-  function handleMagicLink() {
+  async function handleMagicLink() {
     const trimmed = email.trim().toLowerCase();
-    const user = MOCK_USERS[trimmed];
+    const user = await fetchProfile(trimmed);
     if (user) {
       onAuth(user);
     } else {
-      // Unknown email → sign in as guest admin for demo
-      onAuth({ email: trimmed, name: trimmed.split("@")[0], role: "admin", initials: trimmed[0].toUpperCase() + trimmed[1].toUpperCase(), color: "#111111" });
+      onAuth({ email: trimmed, name: trimmed.split("@")[0], role: "admin", initials: trimmed.slice(0, 2).toUpperCase(), color: "#111111" });
     }
   }
 
-  function handleDemoLogin(demoEmail: string) {
+    async function handleDemoLogin(demoEmail: string) {
     setEmail(demoEmail);
     setDemoOpen(false);
     setStep("loading");
-    setTimeout(() => {
-      const user = MOCK_USERS[demoEmail];
-      if (user) onAuth(user);
-    }, 800);
+    const user = await fetchProfile(demoEmail);
+    if (user) onAuth(user);
   }
 
   return (
