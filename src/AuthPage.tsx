@@ -28,17 +28,7 @@ export interface AuthUser {
 }
 
 // ─── Mock registry ────────────────────────────────────────────────────────────
-// Replace with Supabase auth.users + profiles table query when connecting backend
-
-export const MOCK_USERS: Record<string, AuthUser> = {
-  "alvaro@cockpit.app":   { email: "alvaro@cockpit.app",   name: "Álvaro",          role: "admin",  initials: "AL", color: "#111111" },
-  "luke@hartmann.com":    { email: "luke@hartmann.com",    name: "Luke Hartmann",   role: "client", projectId: "p1", initials: "LH", color: "#111111" },
-  "sofia@martinez.com":   { email: "sofia@martinez.com",   name: "Sofía Martínez",  role: "client", projectId: "p2", initials: "SM", color: "#6366f1" },
-  "contact@apexcorp.com": { email: "contact@apexcorp.com", name: "Apex Corp",       role: "client", projectId: "p3", initials: "AC", color: "#0891b2" },
-  "info@datasync.de":     { email: "info@datasync.de",     name: "DataSync GmbH",   role: "client", projectId: "p4", initials: "DG", color: "#16a34a" },
-  "team@novatech.io":     { email: "team@novatech.io",     name: "NovaTech Inc.",    role: "client", projectId: "p5", initials: "NT", color: "#d97706" },
-};
-
+//  -empty -
 // ─── Demo accounts list ────────────────────────────────────────────────────────
 
 const DEMO_ACCOUNTS = [
