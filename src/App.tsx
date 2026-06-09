@@ -733,29 +733,107 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 // ─── Dashboard components ─────────────────────────────────────────────────────
 
-function FeedbackModal({ taskId, taskName, existingFeedback, onSave, onClose }: {
-  taskId: string; taskName: string; existingFeedback?: string;
-  onSave: (taskId: string, feedback: string) => void; onClose: () => void;
+function FeedbackModal({ taskName, onClose, currentUser, selectedProject }: {
+  taskName: string;
+  onClose: () => void;
+  currentUser: AuthUser;
+  selectedProject: { name: string; client: string } | null;
 }) {
-  const [text, setText] = useState(existingFeedback ?? "");
+  const [messages, setMessages] = useState<{ id: string; message: string; sender_role: string; created_at: string }[]>([]);
+  const [text, setText] = useState("");
+  const [sending, setSending] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!selectedProject) return;
+    fetch(`${import.meta.env.VITE_API_URL}/communications/${encodeURIComponent(selectedProject.name)}/${encodeURIComponent(taskName)}`)
+      .then((r) => r.json())
+      .then((data) => setMessages(data.messages ?? []));
+  }, [taskName, selectedProject]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  async function handleSend() {
+    if (!text.trim() || !selectedProject) return;
+    setSending(true);
+    await fetch(`${import.meta.env.VITE_API_URL}/communications`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "feedback",
+        message: text.trim(),
+        email: currentUser.email,
+        client: selectedProject.client,
+        project: selectedProject.name,
+        task: taskName,
+        sender_role: currentUser.role,
+      }),
+    });
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/communications/${encodeURIComponent(selectedProject.name)}/${encodeURIComponent(taskName)}`);
+    const data = await res.json();
+    setMessages(data.messages ?? []);
+    setText("");
+    setSending(false);
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.3)" }}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col" style={{ maxHeight: "80vh" }}>
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border flex-shrink-0">
           <div>
-            <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-0.5">Client Feedback</p>
+            <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-0.5">Feedback</p>
             <h3 className="text-sm font-semibold text-foreground">{taskName}</h3>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted transition-colors"><X size={16} /></button>
         </div>
-        <div className="p-6">
-          <textarea className="w-full rounded-xl border border-border bg-secondary p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-foreground/20 font-sans" rows={4} placeholder="Leave your feedback or comment here..." value={text} onChange={(e) => setText(e.target.value)} autoFocus />
-          <div className="flex justify-end gap-2 mt-4">
-            <button onClick={onClose} className="px-4 py-2 text-sm rounded-lg border border-border hover:bg-muted transition-colors">Cancel</button>
-            <button onClick={() => { onSave(taskId, text); onClose(); }} className="px-4 py-2 text-sm rounded-lg bg-foreground text-white flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <Send size={13} />Send Feedback
-            </button>
-          </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+          {messages.length === 0 && (
+            <p className="text-xs font-mono text-muted-foreground text-center py-8">No messages yet. Start the conversation.</p>
+          )}
+          {messages.map((msg) => {
+            const isMe = msg.sender_role === currentUser.role;
+            return (
+              <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                <div
+                  className="max-w-[75%] px-3 py-2 rounded-xl text-sm"
+                  style={isMe
+                    ? { backgroundColor: "#111111", color: "#ffffff" }
+                    : { backgroundColor: "#f5f5f5", color: "#111111", border: "1px solid rgba(0,0,0,0.08)" }
+                  }
+                >
+                  <p>{msg.message}</p>
+                  <p className="text-[10px] mt-1 opacity-50 font-mono">
+                    {msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+          <div ref={bottomRef} />
+        </div>
+
+        {/* Input */}
+        <div className="px-6 py-4 border-t border-border flex-shrink-0 flex gap-2">
+          <input
+            className="flex-1 rounded-xl border border-border bg-secondary px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/15"
+            placeholder="Type a message…"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+            autoFocus
+          />
+          <button
+            onClick={handleSend}
+            disabled={sending || !text.trim()}
+            className="px-4 py-2 rounded-xl bg-foreground text-white text-sm flex items-center gap-1.5 disabled:opacity-40 hover:opacity-80 transition-opacity"
+          >
+            <Send size={13} />
+          </button>
         </div>
       </div>
     </div>
