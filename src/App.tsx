@@ -1456,6 +1456,7 @@ setSprints(reconstructedSprints);
 
   const loadCommunications = async () => {
     if (!selectedProject) return;
+    console.log("[DEBUG] loadCommunications called for", selectedProject?.name);
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/communications/${encodeURIComponent(selectedProject.name)}`);
       const data = await res.json();
