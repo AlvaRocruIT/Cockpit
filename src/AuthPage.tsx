@@ -32,19 +32,21 @@ export interface AuthUser {
 
 export const MOCK_USERS: Record<string, AuthUser> = {
   "alvaro@cockpit.app":   { email: "alvargash90@gmail.com",   name: "Álvaro",          role: "admin",  initials: "AL", color: "#111111" },
-  "luke@hartmann.com":    { email: "luke@hartmann.com",    name: "Luke Hartmann",   role: "client", projectId: "p1", initials: "LH", color: "#111111" },
-  "sofia@martinez.com":   { email: "sofia@martinez.com",   name: "Sofía Martínez",  role: "client", projectId: "p2", initials: "SM", color: "#6366f1" },
-  "contact@apexcorp.com": { email: "contact@apexcorp.com", name: "Apex Corp",       role: "client", projectId: "p3", initials: "AC", color: "#0891b2" },
-  "team@novatech.io":     { email: "team@novatech.io",     name: "NovaTech Inc.",    role: "client", projectId: "p5", initials: "NT", color: "#d97706" },
+  "luke@hartmann.com":    { email: "luke@hartmann.com",    name: "Luke Hartmann",   role: "client", projectId: "Conversational AI Platform", initials: "LH", color: "#111111" },
+  "sofia@martinez.com":   { email: "sofia@martinez.com",   name: "Sofía Martínez",  role: "client", projectId: "Conversational AI Platform", initials: "SM", color: "#6366f1" },
+  "contact@apexcorp.com": { email: "contact@apexcorp.com", name: "Apex Corp",       role: "client", projectId: "Whatsapp arabic chatbot", initials: "AC", color: "#0891b2" },
+  "team@novatech.io":     { email: "team@novatech.io",     name: "NovaTech Inc.",    role: "client", projectId: "Whatsapp arabic chatbot", initials: "NT", color: "#d97706" },
 };
 
 // ─── Demo accounts list ────────────────────────────────────────────────────────
 
 const DEMO_ACCOUNTS = [
-  { label: "Admin",              email: "alvargash90@gmail.com", role: "admin"  as const, color: "#111111" },
-  { label: "Client — AI Project",email: "luke@hartmann.com",     role: "client" as const, color: "#111111" },
-  { label: "Client — E-Commerce",email: "sofia@martinez.com",    role: "client" as const, color: "#6366f1" },
-  { label: "Client — HR Tool",   email: "contact@apexcorp.com",  role: "client" as const, color: "#0891b2" },
+const DEMO_ACCOUNTS = [
+  { label: "Admin",               email: "alvargash90@gmail.com", role: "admin"  as const, color: "#111111" },
+  { label: "Client — AI Project", email: "luke@hartmann.com",     role: "client" as const, color: "#111111" },
+  { label: "Client — AI Project", email: "sofia@martinez.com",    role: "client" as const, color: "#6366f1" },
+  { label: "Client — WA Chatbot", email: "contact@apexcorp.com",  role: "client" as const, color: "#0891b2" },
+  { label: "Client — WA Chatbot", email: "team@novatech.io",      role: "client" as const, color: "#d97706" },
 ];
 
 // ─── AuthPage ─────────────────────────────────────────────────────────────────
