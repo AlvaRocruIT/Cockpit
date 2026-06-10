@@ -96,14 +96,6 @@ def get_project_status(project: str):
     except Exception as e:
         return {"error": str(e)}
 
-@app.get("/communications/{project}/{task}")
-def get_communications(project: str, task: str):
-    try:
-        data = supabase.table("Communications_table").select("*").eq("project", project).eq("task", task).order("created_at").execute()
-        return {"messages": data.data}
-    except Exception as e:
-        return {"error": str(e)}
-
 @app.get("/communications/{project}")
 def get_all_communications(project: str):
     try:
