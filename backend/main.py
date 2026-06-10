@@ -192,7 +192,6 @@ def receive_project_status(item: ProjectStatusRequest):
 class CommunicationRequest(BaseModel):
     type: str = "feedback"
     message: str
-    email: str
     client: str
     project: str
     task: str
