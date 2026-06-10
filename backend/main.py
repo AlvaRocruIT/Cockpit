@@ -76,7 +76,6 @@ def get_projects():
             "error": str(e)
         }
 
-
 @app.get("/project-status/{project}")
 def get_project_status(project: str):
     try:
