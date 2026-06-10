@@ -41,7 +41,6 @@ export const MOCK_USERS: Record<string, AuthUser> = {
 // ─── Demo accounts list ────────────────────────────────────────────────────────
 
 const DEMO_ACCOUNTS = [
-const DEMO_ACCOUNTS = [
   { label: "Admin",               email: "alvargash90@gmail.com", role: "admin"  as const, color: "#111111" },
   { label: "Client — AI Project", email: "luke@hartmann.com",     role: "client" as const, color: "#111111" },
   { label: "Client — AI Project", email: "sofia@martinez.com",    role: "client" as const, color: "#6366f1" },
