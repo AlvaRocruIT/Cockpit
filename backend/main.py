@@ -204,4 +204,3 @@ def post_communication(item: CommunicationRequest):
         return {"message": "Saved", "data": data.data}
     except Exception as e:
         return {"error": str(e)}
-
