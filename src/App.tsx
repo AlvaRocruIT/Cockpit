@@ -1149,7 +1149,7 @@ function EmailPreview({ config, sprints, chartData, overallPct }: {
 function EmailTemplateView({ sprints, chartData, overallPct }: { sprints: Sprint[]; chartData: any[]; overallPct: number }) {
   const [config, setConfig] = useState<EmailConfig>({
     clientName: "Luke",
-    projectLink: "https://your-project-link.com",
+    projectLink: "https://alvarocruit.github.io/Cockpit/#",
     completedMilestoneIdx: 0,
     nextMilestoneIdx: 1,
     senderName: "Álvaro",
