@@ -1,3 +1,5 @@
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import { createClient } from "@supabase/supabase-js";
 import AuthPage, { AuthUser, MOCK_USERS } from "./AuthPage";
 const supabase = createClient(
