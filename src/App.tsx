@@ -1309,7 +1309,15 @@ function EmailTemplateView({ sprints, chartData, overallPct }: { sprints: Sprint
                   {copied ? <><Check size={12} style={{ color: "#16a34a" }} />Copied</> : <><Copy size={12} />Copy</>}
                 </button>
                 <button
-                  onClick={() => window.print()}
+                  onClick={async () => {
+                    const el = document.querySelector(".email-print-target") as HTMLElement;
+                    if (!el) return;
+                    const canvas = await html2canvas(el, { scale: 2, useCORS: true });
+                    const imgData = canvas.toDataURL("image/png");
+                    const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [canvas.width / 2, canvas.height / 2] });
+                    pdf.addImage(imgData, "PNG", 0, 0, canvas.width / 2, canvas.height / 2);
+                    pdf.save("cockpit-update.pdf");
+                  }}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-opacity hover:opacity-80"
                   style={{ backgroundColor: "#111111" }}
                 >
