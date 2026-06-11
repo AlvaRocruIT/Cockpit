@@ -864,12 +864,33 @@ function SprintCard({ sprint, onFeedback, isAdmin, communications }: {
                         <StatusBadge status={task.status} />
                       </div>
                       <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{task.description}</p>
-                      {task.feedback && (
+                       {task.feedback && (
                         <div className="mt-2 flex items-start gap-2">
                           <MessageSquare size={12} className="flex-shrink-0 mt-0.5 text-blue-500" />
                           <p className="text-xs italic rounded-lg px-2.5 py-1.5" style={{ backgroundColor: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe" }}>{task.feedback}</p>
                         </div>
                       )}
+                      {(() => {
+                        const msgs = (communications as Record<string, { message: string; sender_role: string; created_at: string }[]>)[task.name] ?? [];
+                        if (msgs.length === 0) return null;
+                        return (
+                          <div className="mt-3 space-y-1.5" style={{ maxHeight: msgs.length > 3 ? "160px" : undefined, overflowY: msgs.length > 3 ? "auto" : undefined }}>
+                            {msgs.map((m, i) => {
+                              const isClient = m.sender_role === "client";
+                              return (
+                                <div key={i} className={`flex ${isClient ? "justify-start" : "justify-end"}`}>
+                                  <div className="max-w-[75%] px-3 py-2 rounded-2xl text-xs leading-relaxed"
+                                    style={isClient
+                                      ? { backgroundColor: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe" }
+                                      : { backgroundColor: "#1f2937", color: "#f9fafb" }}>
+                                    {renderMessage(m.message)}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
                     </div>
                     {(() => {
                       const msgs = communications[task.name] ?? [];
