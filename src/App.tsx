@@ -733,6 +733,16 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 // ─── Dashboard components ─────────────────────────────────────────────────────
 
+function renderMessage(text: string) {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+  return parts.map((part, i) =>
+    urlRegex.test(part)
+      ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="underline break-all">{part}</a>
+      : <span key={i}>{part}</span>
+  );
+}
+
 function FeedbackModal({ taskName, project, client, currentUser, messages, onClose, onSent }: {
   taskName: string; project: string; client: string;
   currentUser: { email: string; role: string; name: string };
