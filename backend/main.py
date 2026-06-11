@@ -76,6 +76,23 @@ def get_projects():
             "error": str(e)
         }
 
+@app.get("/projects/{project_name}")
+def get_project(project_name: str):
+    try:
+        data = (
+            supabase
+            .table("Projects_table")
+            .select("id, client, project, condition, week, total_weeks, created_at")
+            .eq("project", project_name)
+            .limit(1)
+            .execute()
+        )
+        if not data.data:
+            return {"error": "Project not found"}
+        return {"project": data.data[0]}
+    except Exception as e:
+        return {"error": str(e)}
+        
 @app.get("/project-status/{project}")
 def get_project_status(project: str):
     try:
