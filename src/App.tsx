@@ -875,14 +875,14 @@ function SprintCard({ sprint, onFeedback, isAdmin, communications }: {
                         if (msgs.length === 0) return null;
                         return (
                           <div className="mt-3 space-y-1.5" style={{ maxHeight: msgs.length > 3 ? "160px" : undefined, overflowY: msgs.length > 3 ? "auto" : undefined }}>
-                            {msgs.map((m, i) => {
+                                                        {msgs.map((m, i) => {
                               const isClient = m.sender_role === "client";
                               return (
                                 <div key={i} className={`flex ${isClient ? "justify-start" : "justify-end"}`}>
-                                  <div className="max-w-[75%] px-3 py-2 rounded-2xl text-xs leading-relaxed"
+                                  <div className="max-w-[75%] px-2.5 py-1.5 rounded-lg text-xs leading-relaxed"
                                     style={isClient
                                       ? { backgroundColor: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe" }
-                                      : { backgroundColor: "#1f2937", color: "#f9fafb" }}>
+                                      : { backgroundColor: "#e2e8f0", color: "#334155", border: "1px solid #cbd5e1" }}>
                                     {renderMessage(m.message)}
                                   </div>
                                 </div>
