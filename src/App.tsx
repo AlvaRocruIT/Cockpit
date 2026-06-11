@@ -1378,9 +1378,35 @@ export default function App() {
       setCurrentUser(null);
     }
   });
+      return () => subscription.unsubscribe();
+  }, []);
 
-  return () => subscription.unsubscribe();
-}, []);
+  useEffect(() => {
+    if (!currentUser || currentUser.role === "admin" || !currentUser.projectId) return;
+
+    const loadClientProject = async () => {
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/projects/${encodeURIComponent(currentUser.projectId!)}`
+        );
+        const data = await res.json();
+        if (data.project) {
+          setSelectedProject({
+            id: data.project.id,
+            name: data.project.project,
+            client: data.project.client,
+            condition: data.project.condition,
+            week: data.project.week,
+            totalWeeks: data.project.total_weeks,
+          });
+        }
+      } catch (e) {
+        console.error("Failed to load client project", e);
+      }
+    };
+
+    loadClientProject();
+  }, [currentUser]);
 
   const loadSavedProjects = async () => {
   try {
